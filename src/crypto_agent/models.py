@@ -36,8 +36,17 @@ class ProviderError(ContractModel):
 
 
 class CryptoListRequest(ContractModel):
-    query: str | None = Field(default=None, max_length=100)
-    limit: int = Field(default=20, ge=1, le=100)
+    query: str | None = Field(
+        default=None,
+        max_length=100,
+        description="Optional partial symbol or provider name, such as BTC.",
+    )
+    limit: int = Field(
+        default=20,
+        ge=1,
+        le=25,
+        description="Maximum number of matching cryptocurrencies to return.",
+    )
 
     @field_validator("query")
     @classmethod
@@ -49,7 +58,11 @@ class CryptoListRequest(ContractModel):
 
 
 class MarketDataRequest(ContractModel):
-    symbols: list[str] = Field(min_length=1, max_length=5)
+    symbols: list[str] = Field(
+        min_length=1,
+        max_length=5,
+        description="One to five cryptocurrency symbols, such as BTC or ETH.",
+    )
 
     @field_validator("symbols")
     @classmethod
@@ -85,10 +98,25 @@ NewsLanguage: TypeAlias = Literal[
 
 
 class NewsSearchRequest(ContractModel):
-    query: str = Field(min_length=1, max_length=500)
-    from_date: date | None = None
-    language: NewsLanguage = "en"
-    limit: int = Field(default=10, ge=1, le=10)
+    query: str = Field(
+        min_length=1,
+        max_length=500,
+        description="NewsAPI search expression, such as bitcoin OR BTC.",
+    )
+    from_date: date | None = Field(
+        default=None,
+        description="Optional earliest publication date in YYYY-MM-DD format.",
+    )
+    language: NewsLanguage = Field(
+        default="en",
+        description="Two-letter language code for returned articles.",
+    )
+    limit: int = Field(
+        default=10,
+        ge=1,
+        le=10,
+        description="Maximum number of article headlines and snippets to return.",
+    )
 
     @field_validator("query")
     @classmethod
@@ -101,7 +129,7 @@ class NewsSearchRequest(ContractModel):
 
 class CryptoListItem(ContractModel):
     symbol: str
-    name: str
+    name: str | None = None
     provider_source: str | None = None
 
 

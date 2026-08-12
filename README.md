@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-Phases 1 and 2 are complete. The project now has secret-safe configuration, typed FreeCryptoAPI and NewsAPI clients, normalized success and error contracts, bounded retries, 15 passing offline tests, and two opt-in live integration tests. LangChain tools, LangGraph routing, memory, and the conversational interface arrive in later phases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+Phases 1 through 3 are complete. The project now has secret-safe configuration, typed provider clients, normalized contracts, bounded retries, and three tested LangChain tools. The offline suite has 27 passing tests, and the provider clients plus direct tool invocations have passed live checks. LangGraph routing, memory, and the conversational interface arrive in later phases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 ## Architecture target
 
@@ -82,6 +82,14 @@ RUN_LIVE_API_TESTS=1 uv run pytest -m live
 Redacted examples of the two live data-provider response shapes are stored in [docs/provider-samples](docs/provider-samples). They contain no article text, current market values, or credentials.
 
 The normalized client contracts and failure behavior are documented in [docs/api-contracts.md](docs/api-contracts.md).
+
+Implemented LangChain tools:
+
+- `list_cryptocurrencies` verifies supported symbols and returns at most 25 matches.
+- `get_crypto_market_data` retrieves current data for one to five symbols.
+- `search_crypto_news` retrieves at most ten recent headlines and snippets.
+
+FreeCryptoAPI currently returns blank names for some list records. The list tool treats those names as missing data and does not infer replacements.
 
 ## Safety boundaries
 

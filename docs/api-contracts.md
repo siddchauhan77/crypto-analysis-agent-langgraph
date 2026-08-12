@@ -18,7 +18,7 @@ These clients consume external APIs. They do not expose a public HTTP API. The i
 
 ### Cryptocurrency list
 
-Returns a bounded list of symbols, names, provider source, total supported count, source name, and UTC retrieval time.
+Returns a bounded list of symbols, optional provider names, provider source, total supported count, source name, and UTC retrieval time. Live verification on August 12, 2026 found blank `name` values in the first 100 provider records. Blank names normalize to `null` and disappear from compact tool output.
 
 ### Market data
 
@@ -62,3 +62,13 @@ Every error includes a safe message, provider source, retry flag, and UTC retrie
 ## Evolution rule
 
 Provider-specific response models remain inside each client module. Later tools depend only on the normalized contracts in `models.py`. A provider field addition does not alter the internal contract unless the project adds and tests it deliberately.
+
+## LangChain tool registry
+
+| Tool | Use | Input cap |
+|---|---|---|
+| `list_cryptocurrencies` | Verify or search supported symbols | 25 records |
+| `get_crypto_market_data` | Current price and daily movement | 5 symbols |
+| `search_crypto_news` | Recent headlines and snippets | 10 articles |
+
+The tools return JSON-safe dictionaries from validated domain models. They do not load secrets, create models, or start graphs. Production construction injects the two provider clients and owns their shutdown through `CryptoToolSet`.

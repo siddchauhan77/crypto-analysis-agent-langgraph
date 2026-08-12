@@ -119,7 +119,7 @@ class FreeCryptoClient(BaseAPIClient):
         normalized = [
             CryptoListItem(
                 symbol=item.symbol.upper(),
-                name=item.name,
+                name=item.name.strip() or None,
                 provider_source=item.source,
             )
             for item in items[: request.limit]

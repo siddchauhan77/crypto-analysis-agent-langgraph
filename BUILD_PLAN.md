@@ -1,6 +1,6 @@
 # Crypto Market Analysis Agent with LangGraph
 
-Status: Active. Phases 1 and 2 completed August 12, 2026
+Status: Active. Phases 1 through 3 completed August 12, 2026
 Project type: Advanced course project plus portfolio case study  
 Timebox: 25 hours  
 Target build window: Five 5-hour sessions  
@@ -430,6 +430,8 @@ Verified result:
 
 ### Phase 3. LangChain tools, 3 hours
 
+Status: Completed August 12, 2026
+
 - Wrap the clients in three `@tool` functions.
 - Write precise tool descriptions and typed arguments.
 - Keep returned JSON small enough for model context.
@@ -441,6 +443,16 @@ Exit check:
 - Direct invocation of each tool returns the documented envelope.
 - Invalid arguments fail before any HTTP request.
 - Tool descriptions distinguish symbol discovery, market data, and news.
+
+Verified result:
+
+- Three dependency-injected tools return compact structured dictionaries without invoking a model or graph.
+- Pydantic schemas publish descriptions and enforce 25 list records, five market symbols, and ten news articles.
+- Invalid arguments fail before provider execution.
+- Provider failures remain structured tool content for later graph reasoning.
+- All three tools passed direct live invocation.
+- FreeCryptoAPI currently returns blank names for some symbol-list records. Blank names normalize to missing data, and the tool description does not promise name resolution.
+- Twenty-seven offline tests pass. Two client-level live integration tests remain opt-in.
 
 ### Phase 4. LangGraph ReAct loop, 4 hours
 
@@ -707,7 +719,7 @@ Do not add trade execution, wallet permissions, or personalized recommendations 
 
 ## Single next step
 
-Start Phase 3. Wrap the verified clients in three narrow LangChain tools and test each tool without invoking the model or graph.
+Start Phase 4. Bind the three verified tools to the configured OpenAI model and build the bounded LangGraph model-to-tool loop.
 
 ## Devil’s advocate
 

@@ -48,6 +48,20 @@ def test_market_data_normalizes_decimals_and_reports_missing_symbols() -> None:
     assert result.missing_symbols == ["ETH"]
 
 
+def test_blank_provider_name_normalizes_to_missing_data() -> None:
+    payload = load_fixture("freecrypto_list.json")
+    payload["result"][0]["name"] = ""
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=payload)
+
+    with FreeCryptoClient("key", transport=httpx.MockTransport(handler)) as client:
+        result = client.list_cryptocurrencies(limit=1)
+
+    assert result.status == "ok"
+    assert result.items[0].name is None
+
+
 def test_invalid_symbols_return_typed_error_without_network_call() -> None:
     def handler(_: httpx.Request) -> httpx.Response:
         raise AssertionError("invalid input must not reach the provider")
