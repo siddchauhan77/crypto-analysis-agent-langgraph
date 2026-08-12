@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-Phases 1 through 3 are complete. The project now has secret-safe configuration, typed provider clients, normalized contracts, bounded retries, and three tested LangChain tools. The offline suite has 27 passing tests, and the provider clients plus direct tool invocations have passed live checks. LangGraph routing, memory, and the conversational interface arrive in later phases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+Phases 1 through 4 are complete. The project now has secret-safe configuration, typed provider clients, three LangChain tools, and a bounded LangGraph model-to-tool loop. The offline suite has 36 passing tests. Live checks cover both provider clients and the five required routing cases. Thread memory and the conversational interface arrive in Phase 5. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 ## Architecture target
 
@@ -90,6 +90,16 @@ Implemented LangChain tools:
 - `search_crypto_news` retrieves at most ten recent headlines and snippets.
 
 FreeCryptoAPI currently returns blank names for some list records. The list tool treats those names as missing data and does not infer replacements.
+
+Phase 4 adds a stateless debug trace for the model-to-tool loop:
+
+```bash
+uv run crypto-agent debug "Compare BTC and ETH using current price and 24-hour change."
+```
+
+The debug command makes live OpenAI and provider requests. Use it intentionally. Thread memory and the interactive chat interface arrive in Phase 5.
+
+The graph allows six requested tool calls per user turn and rejects identical repeated calls. It disables parallel tool calls so traces and quota use remain ordered during the MVP.
 
 ## Safety boundaries
 

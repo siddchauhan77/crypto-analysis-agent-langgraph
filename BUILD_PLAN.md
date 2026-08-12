@@ -1,6 +1,6 @@
 # Crypto Market Analysis Agent with LangGraph
 
-Status: Active. Phases 1 through 3 completed August 12, 2026
+Status: Active. Phases 1 through 4 completed August 12, 2026
 Project type: Advanced course project plus portfolio case study  
 Timebox: 25 hours  
 Target build window: Five 5-hour sessions  
@@ -456,6 +456,8 @@ Verified result:
 
 ### Phase 4. LangGraph ReAct loop, 4 hours
 
+Status: Completed August 12, 2026
+
 - Bind all tools to the OpenAI chat model.
 - Create the model node.
 - Add the tool node.
@@ -470,6 +472,18 @@ Exit check:
 - An unsupported-symbol question calls the list tool before market data.
 - A comparison question accepts multiple symbols in one market-data call.
 - A greeting ends without an API call.
+
+Verified result:
+
+- The compiled graph has explicit model, tool, duplicate-call, and tool-limit nodes.
+- The configured OpenAI model uses Responses API mode with the three Phase 3 tools bound.
+- Tool calls run sequentially and stop after six requested calls in one user turn.
+- Identical tool name and arguments are rejected before a second provider request.
+- The system prompt requires current-data grounding, source and retrieval time, causal uncertainty, and read-only safety.
+- Deterministic fake-model tests cover price, news, symbol verification, comparison, greetings, call limits, duplicate calls, and per-turn counter reset.
+- Five live routing cases passed. The BTC and ETH comparison used one multi-symbol call.
+- A FreeCryptoAPI separator bug was found and corrected: multi-symbol requests require a literal `+`, not URL-encoded `%2B`.
+- Thirty-six offline tests and two opt-in live client tests pass.
 
 ### Phase 5. Thread memory and CLI, 3 hours
 
@@ -719,7 +733,7 @@ Do not add trade execution, wallet permissions, or personalized recommendations 
 
 ## Single next step
 
-Start Phase 4. Bind the three verified tools to the configured OpenAI model and build the bounded LangGraph model-to-tool loop.
+Start Phase 5. Add SQLite-backed thread memory and turn the stateless debug command into a resumable interactive CLI.
 
 ## Devil’s advocate
 

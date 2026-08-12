@@ -48,7 +48,7 @@ def test_registry_has_three_distinct_tools(tools: dict[str, BaseTool]) -> None:
         "search_crypto_news",
     }
     assert "verify a symbol" in tools["list_cryptocurrencies"].description
-    assert "one to five" in tools["get_crypto_market_data"].description
+    assert "all symbols together" in tools["get_crypto_market_data"].description
     assert "headlines" in tools["search_crypto_news"].description
 
 

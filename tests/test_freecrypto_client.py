@@ -36,7 +36,7 @@ def test_list_cryptocurrencies_filters_and_keeps_key_out_of_url() -> None:
 
 def test_market_data_normalizes_decimals_and_reports_missing_symbols() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.params["symbol"] == "BTC+ETH"
+        assert request.url.query == b"symbol=BTC+ETH"
         return httpx.Response(200, json=load_fixture("freecrypto_data.json"))
 
     with FreeCryptoClient("key", transport=httpx.MockTransport(handler)) as client:

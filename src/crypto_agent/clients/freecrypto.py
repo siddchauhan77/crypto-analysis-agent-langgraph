@@ -146,7 +146,9 @@ class FreeCryptoClient(BaseAPIClient):
                 retryable=False,
             )
 
-        payload = self.get_json("/getData", params={"symbol": "+".join(request.symbols)})
+        # FreeCryptoAPI requires a literal plus separator. Encoding it as %2B returns no rows.
+        symbol_query = "+".join(request.symbols)
+        payload = self.get_json(f"/getData?symbol={symbol_query}")
         if isinstance(payload, ProviderError):
             return payload
         try:

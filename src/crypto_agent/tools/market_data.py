@@ -18,7 +18,8 @@ def create_market_data_tool(client: FreeCryptoClient) -> BaseTool:
         args_schema=MarketDataRequest,
         description=(
             "Fetch current price, 24-hour percentage change, daily high, and daily low for "
-            "one to five known cryptocurrency symbols. Use one call for comparisons. "
+            "one to five known cryptocurrency symbols. For every comparison, make exactly "
+            "one call with all symbols together in the symbols list. Never call once per coin. "
             "This free endpoint does not provide market cap or volume. Do not use it for news."
         ),
     )
