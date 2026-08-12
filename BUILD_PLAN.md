@@ -487,6 +487,8 @@ Verified result:
 
 ### Phase 5. Thread memory and CLI, 3 hours
 
+Status: Completed August 12, 2026
+
 - Add `InMemorySaver` for the first memory test.
 - Add `SqliteSaver` for durable local threads.
 - Generate or accept a CLI `thread_id`.
@@ -499,6 +501,18 @@ Exit check:
 - “Compare BTC and ETH” followed by “Which moved more over 24 hours?” works in one thread.
 - A fresh thread does not inherit the earlier comparison.
 - A restarted CLI resumes a stored SQLite thread.
+
+Verified result:
+
+- The graph accepts either `InMemorySaver` for tests or `SqliteSaver` for durable local use.
+- The CLI generates or validates thread IDs and supports `new`, `resume`, `history`, `help`, and `quit`.
+- Short status lines expose model-to-tool progress without printing raw provider payloads.
+- Same-thread follow-ups include earlier user and agent messages.
+- Fresh thread IDs do not inherit another thread's state.
+- Closing the first SQLite connection and rebuilding the graph preserves the stored conversation.
+- SQLite uses a strict serializer policy, and `.data/` stays outside Git.
+- Forty-eight offline tests pass.
+- A live saved BTC and ETH comparison resumed after closing and rebuilding the agent. The same-thread follow-up resolved “which,” while a fresh thread requested the missing coin names.
 
 ### Phase 6. Evaluation and safety, 5 hours
 
@@ -733,7 +747,7 @@ Do not add trade execution, wallet permissions, or personalized recommendations 
 
 ## Single next step
 
-Start Phase 5. Add SQLite-backed thread memory and turn the stateless debug command into a resumable interactive CLI.
+Start Phase 6. Build the fixed 20-prompt evaluation set before tuning the prompt or adding interface work.
 
 ## Devil’s advocate
 
@@ -749,4 +763,4 @@ The course project alone has low differentiation. Many candidates build a tool-c
 
 ## Action bias
 
-The first payoff event is not finishing 25 hours of lessons. It is a live two-turn conversation with one market-data call, one news call, and preserved thread context. Reach that point by Hour 16. Use the remaining nine hours to make the evidence credible.
+The first payoff event now exists: a live-data agent with resumable thread context. The next payoff is measured evidence. Use the remaining time to publish routing accuracy, grounding checks, latency, and model cost.

@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-Phases 1 through 4 are complete. The project now has secret-safe configuration, typed provider clients, three LangChain tools, and a bounded LangGraph model-to-tool loop. The offline suite has 36 passing tests. Live checks cover both provider clients and the five required routing cases. Thread memory and the conversational interface arrive in Phase 5. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+Phases 1 through 5 are complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, and an interactive CLI. The offline suite has 48 passing tests. Live checks cover both provider clients and the five required routing cases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 ## Architecture target
 
@@ -91,13 +91,27 @@ Implemented LangChain tools:
 
 FreeCryptoAPI currently returns blank names for some list records. The list tool treats those names as missing data and does not infer replacements.
 
-Phase 4 adds a stateless debug trace for the model-to-tool loop:
+Use the stateless debug trace to inspect one model-to-tool turn:
 
 ```bash
 uv run crypto-agent debug "Compare BTC and ETH using current price and 24-hour change."
 ```
 
-The debug command makes live OpenAI and provider requests. Use it intentionally. Thread memory and the interactive chat interface arrive in Phase 5.
+The debug command makes live OpenAI and provider requests. Use it intentionally.
+
+Start a durable conversation:
+
+```bash
+uv run crypto-agent chat
+```
+
+The CLI prints the generated thread ID. Keep it if you want to resume after closing the process:
+
+```bash
+uv run crypto-agent chat --thread crypto-a1b2c3d4e5f6
+```
+
+Inside chat, use `new`, `resume THREAD_ID`, `history`, `help`, or `quit`. Checkpoints live at `.data/crypto-agent.sqlite3` by default. Set `CHECKPOINT_DB_PATH` to choose another local path. The repository ignores `.data/`, but the database contains conversation text and tool results. Do not paste credentials or sensitive personal data into a thread.
 
 The graph allows six requested tool calls per user turn and rejects identical repeated calls. It disables parallel tool calls so traces and quota use remain ordered during the MVP.
 

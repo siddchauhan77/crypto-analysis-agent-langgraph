@@ -1,6 +1,7 @@
 """Secret-safe application configuration."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,6 +29,10 @@ class Settings(BaseSettings):
         alias="REQUEST_TIMEOUT_SECONDS",
     )
     max_http_retries: int = Field(default=2, ge=0, le=3, alias="MAX_HTTP_RETRIES")
+    checkpoint_db_path: Path = Field(
+        default=Path(".data/crypto-agent.sqlite3"),
+        alias="CHECKPOINT_DB_PATH",
+    )
     langsmith_tracing: bool = Field(default=False, alias="LANGSMITH_TRACING")
     langsmith_api_key: SecretStr | None = Field(default=None, alias="LANGSMITH_API_KEY")
     langsmith_project: str = Field(

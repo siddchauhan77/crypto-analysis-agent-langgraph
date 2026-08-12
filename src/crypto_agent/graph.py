@@ -10,11 +10,14 @@ from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode
 
 from crypto_agent.config import Settings, get_settings
+from crypto_agent.memory import create_sqlite_checkpointer
 from crypto_agent.prompts import DUPLICATE_TOOL_MESSAGE, SYSTEM_PROMPT, TOOL_LIMIT_MESSAGE
 from crypto_agent.state import AgentState, count_tool_calls_since_last_human
 from crypto_agent.tools import CryptoToolSet, build_crypto_tool_set
@@ -48,8 +51,9 @@ def build_agent_graph(
     tools: Sequence[BaseTool],
     *,
     max_tool_calls: int = MAX_TOOL_CALLS_PER_TURN,
+    checkpointer: BaseCheckpointSaver | None = None,
 ) -> CompiledStateGraph:
-    """Compile a model → tools → model loop without persistence."""
+    """Compile a model → tools → model loop with optional thread persistence."""
     if max_tool_calls < 1:
         raise ValueError("max_tool_calls must be at least one")
 
@@ -131,7 +135,7 @@ def build_agent_graph(
     builder.add_edge("tools", "model")
     builder.add_edge("duplicate_tool", "model")
     builder.add_edge("tool_limit", END)
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
 
 
 @dataclass
@@ -140,9 +144,12 @@ class CryptoAgent:
 
     tool_set: CryptoToolSet
     graph: CompiledStateGraph
+    checkpointer: SqliteSaver | None = None
 
     def close(self) -> None:
         self.tool_set.close()
+        if self.checkpointer is not None:
+            self.checkpointer.conn.close()
 
     def __enter__(self) -> Self:
         return self
@@ -152,7 +159,7 @@ class CryptoAgent:
 
 
 def build_crypto_agent(settings: Settings | None = None) -> CryptoAgent:
-    """Build the production graph from validated local configuration."""
+    """Build a stateless production graph from validated local configuration."""
     resolved = settings or get_settings()
     tool_set = build_crypto_tool_set(resolved)
     model = ChatOpenAI(
@@ -169,9 +176,30 @@ def build_crypto_agent(settings: Settings | None = None) -> CryptoAgent:
     )
 
 
+def build_persistent_crypto_agent(settings: Settings | None = None) -> CryptoAgent:
+    """Build a local SQLite-backed graph for resumable CLI threads."""
+    resolved = settings or get_settings()
+    tool_set = build_crypto_tool_set(resolved)
+    checkpointer = create_sqlite_checkpointer(resolved.checkpoint_db_path)
+    model = ChatOpenAI(
+        model=resolved.openai_model,
+        api_key=resolved.openai_api_key,
+        temperature=0,
+        timeout=resolved.request_timeout_seconds,
+        max_retries=resolved.max_http_retries,
+        use_responses_api=True,
+    )
+    return CryptoAgent(
+        tool_set=tool_set,
+        graph=build_agent_graph(model, tool_set.tools, checkpointer=checkpointer),
+        checkpointer=checkpointer,
+    )
+
+
 __all__ = [
     "MAX_TOOL_CALLS_PER_TURN",
     "CryptoAgent",
     "build_agent_graph",
     "build_crypto_agent",
+    "build_persistent_crypto_agent",
 ]
