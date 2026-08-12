@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "captured_at": "2026-08-12",
+    "endpoint": "/v1/getData?symbol=BTC",
+    "redaction": "Market values and exchange identifiers were replaced. Field names and value types match the live response."
+  },
+  "status": "<redacted-string>",
+  "symbols": [
+    {
+      "symbol": "BTC",
+      "last": "<redacted-decimal-string>",
+      "daily_change_percentage": "<redacted-decimal-string>",
+      "highest": "<redacted-decimal-string>",
+      "lowest": "<redacted-decimal-string>",
+      "last_btc": "<redacted-decimal-string>",
+      "source_exchange": "<redacted-string>",
+      "date": "<redacted-datetime-string>"
+    }
+  ]
+}

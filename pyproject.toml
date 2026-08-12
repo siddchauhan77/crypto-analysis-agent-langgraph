@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "crypto-analysis-agent-langgraph"
+version = "0.1.0"
+description = "A read-only crypto market analysis agent built with LangGraph."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "httpx>=0.28.0",
+  "langchain>=1.0.0",
+  "langchain-openai>=1.0.0",
+  "langgraph>=1.0.0",
+  "langgraph-checkpoint-sqlite>=3.0.0",
+  "pydantic>=2.11.0",
+  "pydantic-settings>=2.10.0",
+  "rich>=14.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.4.0",
+  "pytest-asyncio>=1.0.0",
+  "respx>=0.22.0",
+  "ruff>=0.12.0",
+]
+
+[project.scripts]
+crypto-agent = "crypto_agent.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crypto_agent"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+

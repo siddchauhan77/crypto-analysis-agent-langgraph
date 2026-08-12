@@ -271,6 +271,8 @@ Normalized output fields:
 
 Do not hard-code fields until a real endpoint response has been saved and reviewed. Map provider fields into the normalized model and retain the raw response only in local debug logs with secret redaction.
 
+Observed constraint on August 12, 2026: `/getData?symbol=BTC` returned `symbol`, `last`, `daily_change_percentage`, `highest`, `lowest`, `last_btc`, `source_exchange`, and `date`, all as strings. It did not return `name`, `market_cap`, or `volume`. Phase 2 must inspect `/getTop` for those fields or revise the normalized contract. Do not invent absent values.
+
 ### `search_crypto_news`
 
 Purpose: Retrieve recent articles about a coin, company, regulation, or market event.
@@ -374,6 +376,8 @@ Do not request or expose hidden chain-of-thought. Store tool calls and observabl
 
 ### Phase 1. Scope and setup, 2 hours
 
+Status: Completed August 12, 2026
+
 - Create the repository structure.
 - Initialize Python 3.11 with `uv`.
 - Add dependencies, linting, tests, `.env.example`, and secret-safe `.gitignore` rules.
@@ -386,6 +390,14 @@ Exit check:
 - `uv run python -c "import langgraph"` succeeds.
 - `uv run ruff check .` succeeds.
 - Secrets remain absent from `git diff` and tracked files.
+
+Verified result:
+
+- Python 3.11.15 environment created with an exact `uv.lock` dependency snapshot.
+- All three configured credentials pass validation without appearing in output or Git.
+- Authenticated FreeCryptoAPI and NewsAPI calls returned HTTP 200.
+- Redacted response-shape samples are stored under `docs/provider-samples/`.
+- LangGraph import, Ruff, four baseline tests, JSON validation, and exact-value secret scanning pass.
 
 ### Phase 2. API clients and schemas, 4 hours
 

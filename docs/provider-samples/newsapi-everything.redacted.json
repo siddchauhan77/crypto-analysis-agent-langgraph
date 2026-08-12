@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "captured_at": "2026-08-12",
+    "endpoint": "/v2/everything?q=bitcoin&language=en&sortBy=publishedAt&pageSize=1",
+    "redaction": "Article content and totals were replaced. Field names and value types match the live response."
+  },
+  "status": "<redacted-string>",
+  "totalResults": 0,
+  "articles": [
+    {
+      "source": {
+        "id": null,
+        "name": "<redacted-string>"
+      },
+      "author": "<redacted-string>",
+      "title": "<redacted-string>",
+      "description": "<redacted-string>",
+      "url": "https://example.com/redacted",
+      "urlToImage": "https://example.com/redacted-image",
+      "publishedAt": "<redacted-utc-datetime-string>",
+      "content": "<redacted-truncated-string>"
+    }
+  ]
+}
