@@ -1,11 +1,12 @@
 # Crypto Market Analysis Agent with LangGraph
 
-Status: Planned  
+Status: Active. Phase 1 started August 12, 2026  
 Project type: Advanced course project plus portfolio case study  
 Timebox: 25 hours  
 Target build window: Five 5-hour sessions  
 Primary interface: Python command-line chat  
 Risk class: Read-only market research. No trading or transaction execution.
+Repository: <https://github.com/siddchauhan77/crypto-analysis-agent-langgraph>
 
 ## Project decision
 
