@@ -1,0 +1,22 @@
+{
+  "status": true,
+  "resultset_size": 3821,
+  "result": [
+    {
+      "id": "bitcoin",
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "source": "binance",
+      "history_available_from": "2017-08-17",
+      "ohlc_available_from": "2017-08-17"
+    },
+    {
+      "id": "ethereum",
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "source": "binance",
+      "history_available_from": "2017-08-17",
+      "ohlc_available_from": "2017-08-17"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "totalResults": 2,
+  "articles": [
+    {
+      "source": {"id": "example", "name": "Example News"},
+      "author": "Reporter One",
+      "title": "Bitcoin market update",
+      "description": "A bounded test snippet.",
+      "url": "https://example.com/bitcoin-update",
+      "publishedAt": "2026-08-12T19:00:00Z",
+      "content": "Provider content is not retained."
+    },
+    {
+      "source": {"id": null, "name": "Market Desk"},
+      "author": null,
+      "title": "Crypto policy update",
+      "description": null,
+      "url": "https://example.com/policy-update",
+      "publishedAt": "2026-08-12T18:00:00Z",
+      "content": null
+    }
+  ]
+}

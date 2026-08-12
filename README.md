@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-Phase 1 is complete. The secret-safe Python environment, configuration contract, redacted provider samples, baseline tests, and verification commands are in place. API clients, LangGraph routing, tools, memory, and the conversational interface arrive in later phases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+Phases 1 and 2 are complete. The project now has secret-safe configuration, typed FreeCryptoAPI and NewsAPI clients, normalized success and error contracts, bounded retries, 15 passing offline tests, and two opt-in live integration tests. LangChain tools, LangGraph routing, memory, and the conversational interface arrive in later phases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 ## Architecture target
 
@@ -69,10 +69,19 @@ The configuration command reports whether each service is configured. It never p
 ```bash
 uv run python -c "import langgraph"
 uv run ruff check .
+uv run ruff format --check .
 uv run pytest
 ```
 
+Run the two live provider checks only when you intend to consume API quota:
+
+```bash
+RUN_LIVE_API_TESTS=1 uv run pytest -m live
+```
+
 Redacted examples of the two live data-provider response shapes are stored in [docs/provider-samples](docs/provider-samples). They contain no article text, current market values, or credentials.
+
+The normalized client contracts and failure behavior are documented in [docs/api-contracts.md](docs/api-contracts.md).
 
 ## Safety boundaries
 

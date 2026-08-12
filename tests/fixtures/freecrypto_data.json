@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "symbols": [
+    {
+      "symbol": "BTC",
+      "last": "119500.25",
+      "daily_change_percentage": "2.50",
+      "highest": "120100.00",
+      "lowest": "116000.00",
+      "last_btc": "1.0",
+      "source_exchange": "binance",
+      "date": "2026-08-12T20:00:00Z"
+    }
+  ]
+}

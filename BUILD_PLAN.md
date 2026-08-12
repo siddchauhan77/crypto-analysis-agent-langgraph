@@ -1,6 +1,6 @@
 # Crypto Market Analysis Agent with LangGraph
 
-Status: Active. Phase 1 started August 12, 2026  
+Status: Active. Phases 1 and 2 completed August 12, 2026
 Project type: Advanced course project plus portfolio case study  
 Timebox: 25 hours  
 Target build window: Five 5-hour sessions  
@@ -45,9 +45,9 @@ Ask a market question in plain language and receive a concise answer grounded in
 
 Example prompts:
 
-- “Compare Bitcoin and Ethereum using current price, market cap, and 24-hour change.”
+- “Compare Bitcoin and Ethereum using current price and 24-hour change.”
 - “What recent news might explain Solana’s movement?”
-- “Which of those two coins has the larger market cap?”
+- “Which of those two coins moved more over 24 hours?”
 - “Now compare it with Bitcoin.”
 - “List the supported symbols matching DOGE.”
 
@@ -257,21 +257,22 @@ Normalized output fields:
   "items": [
     {
       "symbol": "BTC",
-      "name": "Bitcoin",
       "price_usd": 0,
-      "market_cap_usd": 0,
       "change_24h_pct": 0,
-      "volume_24h_usd": 0
+      "high_24h_usd": 0,
+      "low_24h_usd": 0,
+      "price_btc": 0,
+      "source_exchange": "provider exchange"
     }
   ],
   "source": "FreeCryptoAPI",
+  "provider_endpoint": "/getData",
+  "missing_symbols": [],
   "retrieved_at": "ISO-8601 UTC timestamp"
 }
 ```
 
-Do not hard-code fields until a real endpoint response has been saved and reviewed. Map provider fields into the normalized model and retain the raw response only in local debug logs with secret redaction.
-
-Observed constraint on August 12, 2026: `/getData?symbol=BTC` returned `symbol`, `last`, `daily_change_percentage`, `highest`, `lowest`, `last_btc`, `source_exchange`, and `date`, all as strings. It did not return `name`, `market_cap`, or `volume`. Phase 2 must inspect `/getTop` for those fields or revise the normalized contract. Do not invent absent values.
+Observed constraint on August 12, 2026: `/getData?symbol=BTC` returned `symbol`, `last`, `daily_change_percentage`, `highest`, `lowest`, `last_btc`, `source_exchange`, and `date`, all as strings. It did not return `name`, market capitalization, or volume. `/getTop` returned HTTP 200 with `status: false` and an upgrade-required error on the configured free plan. The Phase 2 contract therefore excludes unsupported fields instead of inventing values.
 
 ### `search_crypto_news`
 
@@ -401,6 +402,8 @@ Verified result:
 
 ### Phase 2. API clients and schemas, 4 hours
 
+Status: Completed August 12, 2026
+
 - Inspect `/getCryptoList` and `/getData` responses.
 - Inspect NewsAPI `/v2/everything` response fields.
 - Build one HTTP client per provider.
@@ -414,6 +417,16 @@ Exit check:
 - Client tests run without live API access.
 - One optional integration test reaches each live provider.
 - Every success and error response includes `source` and `retrieved_at`.
+
+Verified result:
+
+- FreeCryptoAPI list and market-data clients use bearer-header authentication.
+- NewsAPI search uses `X-Api-Key` header authentication.
+- Provider strings normalize to typed decimals and UTC timestamps.
+- Partial market responses identify missing symbols instead of treating missing values as zero.
+- Stable errors cover invalid input, unauthorized access, rate limits, timeouts, empty results, and upstream failures.
+- Fifteen offline tests pass. Two opt-in live integration tests also pass.
+- `/getTop` is unavailable on the configured free plan, so market cap and volume remain outside the MVP contract.
 
 ### Phase 3. LangChain tools, 3 hours
 
@@ -457,7 +470,7 @@ Exit check:
 
 Exit check:
 
-- “Compare BTC and ETH” followed by “Which has the larger market cap?” works in one thread.
+- “Compare BTC and ETH” followed by “Which moved more over 24 hours?” works in one thread.
 - A fresh thread does not inherit the earlier comparison.
 - A restarted CLI resumes a stored SQLite thread.
 
@@ -619,7 +632,7 @@ Do not freeze a dollar estimate per query in the plan. Model prices and provider
 
 Use one thread:
 
-1. Ask: “Compare BTC and ETH using current price, market cap, and 24-hour change.”
+1. Ask: “Compare BTC and ETH using current price and 24-hour change.”
 2. Show the market-data tool call and timestamped answer.
 3. Ask: “Which one has more recent negative news?”
 4. Show memory resolving “one,” followed by NewsAPI use.
@@ -675,7 +688,7 @@ Do not add trade execution, wallet permissions, or personalized recommendations 
 
 ## Definition of done
 
-- Public repository with a clear license
+- Private repository with reproducible setup and a later public-release decision
 - Reproducible local setup
 - Secret-safe configuration
 - Three working tools
@@ -694,7 +707,7 @@ Do not add trade execution, wallet permissions, or personalized recommendations 
 
 ## Single next step
 
-Create the project skeleton and complete Phase 1 in one two-hour session. Stop after saving redacted example responses from FreeCryptoAPI and NewsAPI. Those responses define the real schemas for every later step.
+Start Phase 3. Wrap the verified clients in three narrow LangChain tools and test each tool without invoking the model or graph.
 
 ## Devil’s advocate
 

@@ -36,6 +36,7 @@ packages = ["src/crypto_agent"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+markers = ["live: calls real provider APIs and consumes quota"]
 
 [tool.ruff]
 line-length = 100
@@ -43,4 +44,3 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
-
