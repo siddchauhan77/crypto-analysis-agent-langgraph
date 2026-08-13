@@ -50,6 +50,55 @@ class FakeGraph:
         }
 
 
+class FakeMarketGraph:
+    def invoke(self, payload: dict[str, object]) -> dict[str, object]:
+        messages = payload["messages"]
+        assert isinstance(messages, list)
+        return {
+            "messages": [
+                *messages,
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "get_crypto_market_data",
+                            "args": {"symbols": ["BTC", "ETH"]},
+                            "id": "call-market",
+                            "type": "tool_call",
+                        }
+                    ],
+                ),
+                ToolMessage(
+                    content=json.dumps(
+                        {
+                            "status": "ok",
+                            "source": "FreeCryptoAPI",
+                            "retrieved_at": "2026-08-12T10:00:00Z",
+                            "items": [
+                                {
+                                    "symbol": "BTC",
+                                    "price_usd": "63500.25",
+                                    "change_24h_pct": "1.25",
+                                    "high_24h_usd": "64000",
+                                    "low_24h_usd": "62000",
+                                },
+                                {
+                                    "symbol": "ETH",
+                                    "price_usd": "1875.50",
+                                    "change_24h_pct": "-0.45",
+                                    "high_24h_usd": "1900",
+                                    "low_24h_usd": "1800",
+                                },
+                            ],
+                        }
+                    ),
+                    tool_call_id="call-market",
+                ),
+                AIMessage(content="Current comparison."),
+            ]
+        }
+
+
 @dataclass
 class FakeAgent:
     graph: FakeGraph
@@ -96,8 +145,41 @@ def test_chat_runs_existing_graph_and_returns_evidence(monkeypatch) -> None:
     assert payload["sources"] == ["NewsAPI"]
     assert payload["retrieved_at"] == ["2026-08-12T10:00:00Z"]
     assert payload["citations"] == [{"label": "Market update", "url": "https://example.com/news"}]
+    assert payload["chart"] is None
     assert fake_graph.input is not None
     assert len(fake_graph.input["messages"]) == 3  # type: ignore[arg-type]
+
+
+def test_chat_returns_current_market_chart(monkeypatch) -> None:
+    monkeypatch.setattr(web, "build_crypto_agent", lambda: FakeAgent(FakeMarketGraph()))
+    monkeypatch.delenv("DEMO_ACCESS_CODE", raising=False)
+
+    response = TestClient(web.app).post("/api/chat", json={"message": "Compare BTC and ETH."})
+
+    assert response.status_code == 200
+    chart = response.json()["chart"]
+    assert chart == {
+        "kind": "price_comparison",
+        "unit": "USD",
+        "source": "FreeCryptoAPI",
+        "retrieved_at": "2026-08-12T10:00:00Z",
+        "points": [
+            {
+                "symbol": "BTC",
+                "price_usd": 63500.25,
+                "change_24h_pct": 1.25,
+                "high_24h_usd": 64000.0,
+                "low_24h_usd": 62000.0,
+            },
+            {
+                "symbol": "ETH",
+                "price_usd": 1875.5,
+                "change_24h_pct": -0.45,
+                "high_24h_usd": 1900.0,
+                "low_24h_usd": 1800.0,
+            },
+        ],
+    }
 
 
 def test_chat_requires_configured_demo_code(monkeypatch) -> None:

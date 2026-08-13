@@ -142,6 +142,88 @@ function renderAnswer(node, text) {
   }
 }
 
+function formatUsd(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "Unavailable";
+  const digits = number > 0 && number < 1 ? 6 : 2;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: digits,
+  }).format(number);
+}
+
+function renderPriceChart(chart) {
+  if (!chart || chart.kind !== "price_comparison" || !Array.isArray(chart.points)) return null;
+  const points = chart.points
+    .map((point) => ({ ...point, price_usd: Number(point.price_usd) }))
+    .filter((point) => point.symbol && Number.isFinite(point.price_usd) && point.price_usd >= 0)
+    .slice(0, 5);
+  if (!points.length) return null;
+
+  const section = document.createElement("section");
+  section.className = "market-chart";
+  const accessibleSummary = points
+    .map((point) => `${point.symbol} ${formatUsd(point.price_usd)}`)
+    .join(", ");
+  section.setAttribute("role", "img");
+  section.setAttribute("aria-label", `Current price comparison in US dollars: ${accessibleSummary}`);
+
+  const header = document.createElement("div");
+  header.className = "market-chart-header";
+  const title = document.createElement("div");
+  const kicker = document.createElement("span");
+  kicker.textContent = "> PRICE VISUALIZATION";
+  const heading = document.createElement("strong");
+  heading.textContent = "CURRENT PRICE // USD";
+  title.append(kicker, heading);
+  const note = document.createElement("span");
+  note.textContent = "LIVE SNAPSHOT · NOT PRICE HISTORY";
+  header.append(title, note);
+
+  const plot = document.createElement("div");
+  plot.className = "market-chart-plot";
+  const maximum = Math.max(...points.map((point) => point.price_usd), 1);
+  points.forEach((point, index) => {
+    const row = document.createElement("div");
+    row.className = "market-chart-row";
+
+    const symbol = document.createElement("strong");
+    symbol.className = "market-chart-symbol";
+    symbol.textContent = point.symbol;
+
+    const track = document.createElement("div");
+    track.className = "market-chart-track";
+    const bar = document.createElement("span");
+    bar.className = "market-chart-bar";
+    bar.style.width = `${(point.price_usd / maximum) * 100}%`;
+    bar.style.animationDelay = `${index * 90}ms`;
+    track.append(bar);
+
+    const values = document.createElement("div");
+    values.className = "market-chart-values";
+    const price = document.createElement("strong");
+    price.textContent = formatUsd(point.price_usd);
+    values.append(price);
+    if (Number.isFinite(Number(point.change_24h_pct))) {
+      const change = Number(point.change_24h_pct);
+      const changeNode = document.createElement("span");
+      changeNode.className = change >= 0 ? "positive" : "negative";
+      changeNode.textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)}% 24H`;
+      values.append(changeNode);
+    }
+    row.append(symbol, track, values);
+    plot.append(row);
+  });
+
+  const footer = document.createElement("div");
+  footer.className = "market-chart-footer";
+  footer.textContent = `SOURCE: ${chart.source} · RETRIEVED: ${chart.retrieved_at}`;
+  section.append(header, plot, footer);
+  return section;
+}
+
 function addMessage(role, content, metadata = {}) {
   welcomeNode?.remove();
   const article = document.createElement("article");
@@ -160,7 +242,12 @@ function addMessage(role, content, metadata = {}) {
   body.className = "message-body";
   if (role === "agent") renderAnswer(body, content);
   else body.textContent = content;
-  contentNode.append(label, body);
+  contentNode.append(label);
+  if (role === "agent") {
+    const chart = renderPriceChart(metadata.chart);
+    if (chart) contentNode.append(chart);
+  }
+  contentNode.append(body);
 
   const evidence = document.createElement("div");
   evidence.className = "evidence-strip";
@@ -219,7 +306,10 @@ async function submitMessage(rawMessage, displayUser = true) {
   const message = rawMessage.trim();
   if (!message || sendButton.disabled) return;
 
-  const context = history.slice(-MAX_HISTORY);
+  const context = history.slice(-MAX_HISTORY).map((item) => ({
+    role: item.role,
+    content: item.content,
+  }));
   pendingMessage = message;
   if (displayUser) addMessage("user", message);
   question.value = "";
@@ -253,7 +343,17 @@ async function submitMessage(rawMessage, displayUser = true) {
     addMessage("agent", payload.answer, payload);
     history.push(
       { role: "user", content: message },
-      { role: "assistant", content: payload.answer },
+      {
+        role: "assistant",
+        content: payload.answer,
+        metadata: {
+          tools_used: payload.tools_used,
+          sources: payload.sources,
+          retrieved_at: payload.retrieved_at,
+          citations: payload.citations,
+          chart: payload.chart,
+        },
+      },
     );
     history = history.slice(-MAX_HISTORY);
     saveHistory();
@@ -355,7 +455,9 @@ accessInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") saveAccessButton.click();
 });
 
-history.forEach((item) => addMessage(item.role === "user" ? "user" : "agent", item.content));
+history.forEach((item) =>
+  addMessage(item.role === "user" ? "user" : "agent", item.content, item.metadata || {}),
+);
 if (!sessionStorage.getItem(ACCESS_KEY)) accessPanel.classList.remove("hidden");
 if (!localStorage.getItem(TOUR_KEY) && history.length === 0) {
   window.setTimeout(openTour, 350);

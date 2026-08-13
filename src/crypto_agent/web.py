@@ -49,6 +49,26 @@ class Citation(WebModel):
     url: str
 
 
+class PricePoint(WebModel):
+    """One current market observation rendered in the browser chart."""
+
+    symbol: str
+    price_usd: float = Field(ge=0)
+    change_24h_pct: float | None = None
+    high_24h_usd: float | None = Field(default=None, ge=0)
+    low_24h_usd: float | None = Field(default=None, ge=0)
+
+
+class PriceChart(WebModel):
+    """A bounded current-price comparison chart sourced from a market tool result."""
+
+    kind: Literal["price_comparison"] = "price_comparison"
+    unit: Literal["USD"] = "USD"
+    source: str
+    retrieved_at: str
+    points: list[PricePoint] = Field(min_length=1, max_length=5)
+
+
 class ChatResponse(WebModel):
     """Browser-facing answer and compact evidence metadata."""
 
@@ -58,6 +78,7 @@ class ChatResponse(WebModel):
     sources: list[str]
     retrieved_at: list[str]
     citations: list[Citation]
+    chart: PriceChart | None = None
 
 
 _request_times: dict[str, deque[float]] = defaultdict(deque)
@@ -137,12 +158,13 @@ def _langchain_messages(payload: ChatRequest) -> list[HumanMessage | AIMessage]:
 
 def _tool_metadata(
     messages: list[object],
-) -> tuple[list[str], list[str], list[str], list[Citation]]:
+) -> tuple[list[str], list[str], list[str], list[Citation], PriceChart | None]:
     tools: list[str] = []
     sources: list[str] = []
     timestamps: list[str] = []
     citations: list[Citation] = []
     seen_links: set[str] = set()
+    chart: PriceChart | None = None
 
     for message in messages:
         if isinstance(message, AIMessage):
@@ -164,6 +186,42 @@ def _tool_metadata(
         retrieved_at = result.get("retrieved_at")
         if isinstance(retrieved_at, str) and retrieved_at not in timestamps:
             timestamps.append(retrieved_at)
+        items = result.get("items", [])
+        if isinstance(source, str) and isinstance(retrieved_at, str) and isinstance(items, list):
+            points: list[PricePoint] = []
+            for item in items[:5]:
+                if not isinstance(item, dict):
+                    continue
+                symbol = item.get("symbol")
+                price = item.get("price_usd")
+                if not isinstance(symbol, str) or not isinstance(price, (str, int, float)):
+                    continue
+                try:
+                    points.append(
+                        PricePoint(
+                            symbol=symbol[:20],
+                            price_usd=float(price),
+                            change_24h_pct=(
+                                float(item["change_24h_pct"])
+                                if item.get("change_24h_pct") is not None
+                                else None
+                            ),
+                            high_24h_usd=(
+                                float(item["high_24h_usd"])
+                                if item.get("high_24h_usd") is not None
+                                else None
+                            ),
+                            low_24h_usd=(
+                                float(item["low_24h_usd"])
+                                if item.get("low_24h_usd") is not None
+                                else None
+                            ),
+                        )
+                    )
+                except (TypeError, ValueError):
+                    continue
+            if points:
+                chart = PriceChart(source=source, retrieved_at=retrieved_at, points=points)
         articles = result.get("articles", [])
         if not isinstance(articles, list):
             continue
@@ -179,7 +237,7 @@ def _tool_metadata(
             seen_links.add(url)
             citations.append(Citation(label=str(title or "News source")[:120], url=url))
 
-    return tools, sources, timestamps, citations
+    return tools, sources, timestamps, citations, chart
 
 
 @app.get("/api/health")
@@ -228,7 +286,7 @@ def chat(
             detail="The agent returned no final answer.",
         )
 
-    tools, sources, timestamps, citations = _tool_metadata(messages)
+    tools, sources, timestamps, citations, chart = _tool_metadata(messages)
     return ChatResponse(
         request_id=uuid4().hex[:12],
         answer=final.text,
@@ -236,4 +294,5 @@ def chat(
         sources=sources,
         retrieved_at=timestamps,
         citations=citations,
+        chart=chart,
     )
