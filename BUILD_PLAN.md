@@ -562,12 +562,24 @@ Verified result:
 - Record known limitations and failure cases.
 - Add an evaluation table with pass rate, latency, and cost.
 - Record a short terminal demo or GIF.
+- Add a responsive browser interface backed by the existing Python agent.
+- Keep credentials server-side and use bounded browser-provided history on Vercel.
+- Require a shared demo code and retain provider-level spending limits.
 
 Exit check:
 
 - A new user follows the README from clone to first query.
 - The demo uses live data but never presents a trade recommendation.
 - The README labels planned features separately from implemented features.
+
+Verified result:
+
+- A FastAPI endpoint reuses the existing LangGraph agent without duplicating its tool logic.
+- The browser renders grounded answers, provider names, exact retrieval times, and article links.
+- Conversation history stays bounded to 12 visible messages and remains in browser storage.
+- The deployed endpoint supports a shared demo code, bounded inputs, no-store responses, security headers, and best-effort throttling.
+- Desktop and 375-pixel mobile browser checks pass with no error overlay or horizontal overflow.
+- Sixty offline tests pass. Two provider tests remain opt-in.
 
 ### Phase 8. Final QA and portfolio packaging, 1 hour
 

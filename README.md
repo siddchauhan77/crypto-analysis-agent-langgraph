@@ -6,7 +6,9 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-Phases 1 through 5 are complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, and an interactive CLI. The offline suite has 48 passing tests. Live checks cover both provider clients and the five required routing cases. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+Phases 1 through 6 are complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, and a repeated live evaluation baseline. The offline suite has 55 passing tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+
+The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
 
 ## Architecture target
 
@@ -113,6 +115,18 @@ uv run crypto-agent chat --thread crypto-a1b2c3d4e5f6
 
 Inside chat, use `new`, `resume THREAD_ID`, `history`, `help`, or `quit`. Checkpoints live at `.data/crypto-agent.sqlite3` by default. Set `CHECKPOINT_DB_PATH` to choose another local path. The repository ignores `.data/`, but the database contains conversation text and tool results. Do not paste credentials or sensitive personal data into a thread.
 
+## Browser interface
+
+Install the Vercel CLI, then start the web-compatible local runtime:
+
+```bash
+vercel dev
+```
+
+Open `http://localhost:3000`. The browser sends at most 12 visible history messages with each request. API keys remain server-side. When `DEMO_ACCESS_CODE` is configured, the live endpoint requires the shared code through a request header and keeps it in browser session storage.
+
+The web endpoint also applies input limits, security headers, no-store caching, a six-tool-call graph limit, and a best-effort per-instance request limit. Vercel instances do not share the in-memory request counter, so account-level API spending limits remain required.
+
 ## Evaluation baseline
 
 Phase 6 uses a fixed 20-case dataset covering market data, symbol checks, news, multi-tool synthesis, threaded follow-ups, and safety. Every case runs twice against fresh threads.
@@ -127,7 +141,7 @@ See [docs/evaluation-report.md](docs/evaluation-report.md) for the methodology, 
 
 ## How to demo and share it
 
-For a live local demo, open a terminal and run `uv run crypto-agent chat`. Ask for a BTC and ETH comparison, ask a follow-up using “those two,” show `history`, close the CLI, and resume the printed thread ID.
+For a visual demo, open the hosted browser interface or run `vercel dev`. Ask for a BTC and ETH comparison, ask which changed more, and test the safety boundary. Use the CLI when you want to demonstrate durable SQLite restart recovery.
 
 For friends today, screen-share the local CLI or send a short recording. They do not need access to your API keys. Do not send `.env` or the SQLite checkpoint file.
 
@@ -135,7 +149,7 @@ For a public portfolio release, use three layers:
 
 1. A 90-second demo video showing tool choice, a grounded answer, memory, and one safety refusal.
 2. A public repository containing architecture, tests, the fixed eval dataset, baseline results, and known failures.
-3. An optional hosted read-only interface only after server-side secrets, request limits, usage caps, and abuse controls exist.
+3. A hosted read-only interface with server-side keys and a shared access code. Keep provider spending limits active because application-level throttling is best-effort on serverless instances.
 
 The repository remains private until the Phase 8 secret scan and public-release review. See [docs/showcase-plan.md](docs/showcase-plan.md).
 

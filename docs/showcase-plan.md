@@ -2,13 +2,19 @@
 
 ## What someone can use today
 
-The working product is a local terminal chat. It retrieves current crypto market data and recent news, chooses tools through LangGraph, remembers named threads, and refuses trade directions.
+The project now has a hosted browser demo and a local terminal chat. Both retrieve current crypto market data and recent news, choose tools through LangGraph, and refuse trade directions. The browser resends bounded visible history. The terminal also supports durable named threads and restart recovery.
 
 Start it:
 
 ```bash
 uv sync --extra dev
 uv run crypto-agent chat
+```
+
+Start the browser locally:
+
+```bash
+vercel dev
 ```
 
 Suggested live sequence:
@@ -38,16 +44,16 @@ Best for technical reviewers. Publish only after Phase 8 confirms no credentials
 
 ### Option 4: Hosted interactive demo
 
-Defer until the local MVP release passes Phase 8. A hosted version needs server-side keys, per-IP or per-session limits, daily spend caps, abuse controls, isolated thread storage, error monitoring, and a clear analysis-only disclaimer. A public form without those controls exposes API spend.
+Use the access-code-protected Vercel deployment for a live portfolio walkthrough. The app keeps keys server-side and applies bounded inputs, visible-history limits, a six-call graph limit, and best-effort throttling. Keep provider spending limits active because serverless instances do not share the local request counter.
 
 ## 90-second video structure
 
 | Time | Show | Explain |
 |---|---|---|
 | 0-10 sec | One-sentence problem and architecture | The agent chooses between market, symbol, and news tools. |
-| 10-35 sec | BTC and ETH comparison | Current claims come from an API result with source and timestamp. |
-| 35-50 sec | “Which of those two…” follow-up | SQLite checkpoints preserve thread context. |
-| 50-65 sec | Close and resume the thread | Memory survives a process restart. |
+| 10-35 sec | Browser BTC and ETH comparison | Current claims come from an API result with visible source and timestamp chips. |
+| 35-50 sec | “Which of those two…” follow-up | Bounded visible history preserves the browser conversation. |
+| 50-65 sec | Architecture diagram | Explain browser history versus durable local SQLite threads. |
 | 65-75 sec | Buy-or-sell request | The system gives analysis but no trade direction. |
 | 75-90 sec | Evaluation report | 20 fixed cases, two runs each, 92.5% pass rate, $0.021383 estimated model cost. |
 
@@ -61,5 +67,5 @@ Do not call it a trading bot, financial adviser, prediction engine, or productio
 
 ## Release gate
 
-- Phase 7: record the demo, add sample conversations, and finish portfolio copy.
+- Phase 7: browser interface, FastAPI boundary, responsive checks, and hosted demo implemented. Recording remains.
 - Phase 8: run clean-install QA, secret scanning, public-link checks, and the final repository visibility decision.

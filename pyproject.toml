@@ -9,6 +9,7 @@ description = "A read-only crypto market analysis agent built with LangGraph."
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [
+  "fastapi>=0.117.1",
   "httpx>=0.28.0",
   "langchain>=1.0.0",
   "langchain-openai>=1.0.0",
@@ -25,6 +26,7 @@ dev = [
   "pytest-asyncio>=1.0.0",
   "respx>=0.22.0",
   "ruff>=0.12.0",
+  "uvicorn>=0.41.0",
 ]
 
 [project.scripts]

@@ -1,6 +1,22 @@
-# Phase 5 Architecture
+# Current Architecture
 
-Status: Implemented August 12, 2026
+Status: Phase 7 implemented August 12, 2026
+
+## Interface status
+
+The project has an implemented local terminal application and an implemented browser interface backed by FastAPI. The terminal uses durable local SQLite checkpoints. The hosted browser resends bounded visible history because Vercel's serverless filesystem does not support persistent SQLite.
+
+Run the current interface with:
+
+```bash
+uv run crypto-agent chat
+```
+
+Run the browser-compatible local environment with:
+
+```bash
+vercel dev
+```
 
 ## Requirements
 
@@ -24,11 +40,12 @@ Non-functional:
 - Isolate messages between thread IDs.
 - Resume local threads after a process restart.
 
-## Runtime flow
+## Implemented local runtime
 
 ```mermaid
 flowchart TD
-    U["Human message plus thread ID"] --> S["SQLite checkpointer"]
+    U["User"] --> CLI["Terminal chat interface<br>crypto-agent chat"]
+    CLI --> S["SQLite checkpointer<br>local conversation memory"]
     S --> M["Model node<br>System prompt plus thread messages"]
     M --> R{"Tool calls?"}
     R -->|"No"| E["End with grounded answer"]
@@ -45,6 +62,38 @@ flowchart TD
     L --> E
     E --> S
 ```
+
+## Implemented browser delivery layer
+
+The public-demo architecture keeps API keys on the server and reuses the existing graph, tools, evaluation cases, and safety rules. The browser stores at most 12 visible messages locally and resends them with the next turn.
+
+```mermaid
+flowchart LR
+    B["Browser chat UI<br>bounded local history"] -->|"HTTPS request plus visible history"| A["FastAPI service"]
+    A --> G["Existing LangGraph agent"]
+    G --> O["OpenAI model"]
+    G --> FC["FreeCryptoAPI"]
+    G --> NA["NewsAPI"]
+    A -->|"Grounded response plus sources"| B
+
+    K["Server-side environment variables"] -.-> A
+    RL["Rate and spending limits"] -.-> A
+```
+
+Current public controls:
+
+- Browser loading, error, source, timestamp, and safety states.
+- A server-side FastAPI endpoint that owns all three credentials.
+- A shared demo access code stored in browser session storage.
+- Bounded inputs, bounded history, security headers, no-store caching, and best-effort throttling.
+- Responsive browser verification at desktop and 375-pixel mobile width.
+
+Remaining production upgrades:
+
+- Replace the shared code with user authentication for broader access.
+- Add a shared rate-limit store and account-level daily spending controls.
+- Add a hosted checkpointer if durable cross-device threads become a requirement.
+- Add deployment tracing, alerting, and abuse-response procedures.
 
 ## Key trade-offs
 

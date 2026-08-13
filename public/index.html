@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A read-only LangGraph agent for source-grounded cryptocurrency market research."
+    />
+    <meta name="theme-color" content="#07110f" />
+    <title>Signal Desk | Crypto Market Analysis Agent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Signal Desk home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M4 24V15M10 24V9M16 24V13M22 24V5M28 24V11" />
+        </svg>
+        <span>Signal Desk</span>
+      </a>
+      <div class="header-status" aria-label="Application status">
+        <span class="status-pill"><i></i>Live sources</span>
+        <span class="status-pill muted">Read-only</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="context-rail" aria-label="Agent context">
+        <section class="rail-intro">
+          <p class="eyebrow">Market intelligence</p>
+          <h1>Ask the market.<br />Not model memory.</h1>
+          <p>
+            Current crypto data and recent headlines, routed through a bounded LangGraph agent.
+          </p>
+        </section>
+
+        <section class="proof-card" aria-labelledby="proof-title">
+          <div class="section-label" id="proof-title">Evaluation baseline</div>
+          <div class="score-row">
+            <strong>92.5%</strong>
+            <span>37 of 40<br />live runs passed</span>
+          </div>
+          <div class="metric-grid">
+            <div><span>5.574s</span><small>Median</small></div>
+            <div><span>3</span><small>Tools</small></div>
+            <div><span>55</span><small>Tests</small></div>
+          </div>
+        </section>
+
+        <section class="source-card" aria-labelledby="source-title">
+          <div class="section-label" id="source-title">Connected evidence</div>
+          <div class="source-row">
+            <span class="source-icon">FC</span>
+            <div><strong>FreeCryptoAPI</strong><small>Prices and symbol data</small></div>
+          </div>
+          <div class="source-row">
+            <span class="source-icon">NA</span>
+            <div><strong>NewsAPI</strong><small>Headlines and snippets</small></div>
+          </div>
+        </section>
+
+        <p class="rail-note">
+          Research only. No predictions, trades, wallet access, or personalized financial advice.
+        </p>
+      </aside>
+
+      <section class="chat-shell" aria-label="Crypto analyst conversation">
+        <div class="chat-topbar">
+          <div>
+            <span class="terminal-dot"></span>
+            <strong>Analyst session</strong>
+          </div>
+          <button class="text-button" id="new-chat" type="button">New session</button>
+        </div>
+
+        <div class="messages" id="messages" aria-live="polite">
+          <section class="welcome" id="welcome">
+            <p class="eyebrow">Bounded agent. Current evidence.</p>
+            <h2>What do you want to understand?</h2>
+            <p>
+              Ask for a comparison, recent coverage, or a follow-up. Every current claim should
+              name its provider and retrieval time.
+            </p>
+            <div class="prompt-grid" aria-label="Suggested questions">
+              <button class="prompt-card" type="button" data-prompt="Compare BTC and ETH using current price and 24-hour change.">
+                <span>01</span><strong>Compare BTC and ETH</strong><small>Current market data</small>
+              </button>
+              <button class="prompt-card" type="button" data-prompt="Summarize the latest Bitcoin news headlines and snippets.">
+                <span>02</span><strong>Latest Bitcoin news</strong><small>Recent coverage</small>
+              </button>
+              <button class="prompt-card" type="button" data-prompt="Compare SOL and ETH, then summarize recent news context without claiming causation.">
+                <span>03</span><strong>SOL vs ETH context</strong><small>Multi-tool synthesis</small>
+              </button>
+              <button class="prompt-card" type="button" data-prompt="Should I put all my savings into Bitcoin today?">
+                <span>04</span><strong>Test the safety boundary</strong><small>Trade refusal</small>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <div class="access-panel hidden" id="access-panel" role="status">
+          <div>
+            <strong>Demo access required</strong>
+            <span>Enter the shared code. It stays in this browser session.</span>
+          </div>
+          <label>
+            <span class="sr-only">Demo access code</span>
+            <input id="access-code" type="password" autocomplete="current-password" placeholder="Access code" />
+          </label>
+          <button id="save-access" type="button">Save</button>
+        </div>
+
+        <form class="composer" id="composer">
+          <label class="sr-only" for="question">Ask a crypto market question</label>
+          <textarea
+            id="question"
+            name="question"
+            rows="1"
+            maxlength="1200"
+            placeholder="Ask about current prices, comparisons, or recent news..."
+            required
+          ></textarea>
+          <div class="composer-footer">
+            <span><kbd>Enter</kbd> send · <kbd>Shift</kbd> + <kbd>Enter</kbd> new line</span>
+            <button class="send-button" id="send-button" type="submit">
+              <span>Run analysis</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6-7-1Z" /></svg>
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <span>Built with LangGraph + OpenAI</span>
+      <span>Current data stays provider-dependent</span>
+    </footer>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
