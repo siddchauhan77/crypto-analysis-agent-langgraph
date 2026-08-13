@@ -113,6 +113,32 @@ uv run crypto-agent chat --thread crypto-a1b2c3d4e5f6
 
 Inside chat, use `new`, `resume THREAD_ID`, `history`, `help`, or `quit`. Checkpoints live at `.data/crypto-agent.sqlite3` by default. Set `CHECKPOINT_DB_PATH` to choose another local path. The repository ignores `.data/`, but the database contains conversation text and tool results. Do not paste credentials or sensitive personal data into a thread.
 
+## Evaluation baseline
+
+Phase 6 uses a fixed 20-case dataset covering market data, symbol checks, news, multi-tool synthesis, threaded follow-ups, and safety. Every case runs twice against fresh threads.
+
+```bash
+uv run crypto-agent evaluate --live --repetitions 2
+```
+
+The `--live` flag is required because the command consumes OpenAI tokens and provider quota. The August 12, 2026 baseline passed 37 of 40 runs, or 92.5%. Median latency was 5.574 seconds, and estimated OpenAI model cost was $0.021383. Tool choice, required tools, symbols, provider success, timestamps, and trade-safety checks scored 100%.
+
+See [docs/evaluation-report.md](docs/evaluation-report.md) for the methodology, remaining failures, and limits. The full machine-readable run is [evals/baseline-results.json](evals/baseline-results.json).
+
+## How to demo and share it
+
+For a live local demo, open a terminal and run `uv run crypto-agent chat`. Ask for a BTC and ETH comparison, ask a follow-up using “those two,” show `history`, close the CLI, and resume the printed thread ID.
+
+For friends today, screen-share the local CLI or send a short recording. They do not need access to your API keys. Do not send `.env` or the SQLite checkpoint file.
+
+For a public portfolio release, use three layers:
+
+1. A 90-second demo video showing tool choice, a grounded answer, memory, and one safety refusal.
+2. A public repository containing architecture, tests, the fixed eval dataset, baseline results, and known failures.
+3. An optional hosted read-only interface only after server-side secrets, request limits, usage caps, and abuse controls exist.
+
+The repository remains private until the Phase 8 secret scan and public-release review. See [docs/showcase-plan.md](docs/showcase-plan.md).
+
 The graph allows six requested tool calls per user turn and rejects identical repeated calls. It disables parallel tool calls so traces and quota use remain ordered during the MVP.
 
 ## Safety boundaries

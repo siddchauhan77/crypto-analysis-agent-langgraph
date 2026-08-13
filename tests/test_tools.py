@@ -67,7 +67,7 @@ def test_tool_schemas_publish_limits_and_argument_descriptions(
         == 25
     )
     assert news_schema["properties"]["limit"]["maximum"] == 10
-    assert news_schema["properties"]["from_date"]["description"].startswith("Optional")
+    assert "from_date" not in news_schema["properties"]
 
 
 def test_list_tool_returns_structured_bounded_result(tools: dict[str, BaseTool]) -> None:
@@ -91,12 +91,10 @@ def test_market_tool_normalizes_symbols_and_returns_compact_json(
     assert result["source"] == "FreeCryptoAPI"
 
 
-def test_news_tool_accepts_iso_date_and_omits_null_article_fields(
+def test_news_tool_returns_recent_results_and_omits_null_article_fields(
     tools: dict[str, BaseTool],
 ) -> None:
-    result = tools["search_crypto_news"].invoke(
-        {"query": "bitcoin", "from_date": "2026-08-01", "limit": 2}
-    )
+    result = tools["search_crypto_news"].invoke({"query": "bitcoin", "limit": 2})
 
     assert result["status"] == "ok"
     assert len(result["articles"]) == 2

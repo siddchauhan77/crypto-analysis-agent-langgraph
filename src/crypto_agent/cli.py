@@ -2,6 +2,7 @@
 
 import argparse
 import json
+from pathlib import Path
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
@@ -10,6 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from crypto_agent.config import get_settings
+from crypto_agent.evaluation import run_live_evaluation
 from crypto_agent.graph import build_crypto_agent, build_persistent_crypto_agent
 from crypto_agent.memory import (
     get_thread_messages,
@@ -171,6 +173,30 @@ def interactive_chat(initial_thread_id: str | None = None) -> None:
         console.print(f"[red]Unable to start chat:[/red] {exc}")
 
 
+def evaluate_agent(cases: Path, output: Path, repetitions: int, live: bool) -> None:
+    """Run the fixed evaluation dataset with explicit quota consent."""
+    console = Console()
+    if not live:
+        console.print("[yellow]Evaluation not started.[/yellow]")
+        console.print("Add --live to permit OpenAI, FreeCryptoAPI, and NewsAPI requests.")
+        return
+    console.print(
+        f"Running [bold]{repetitions}[/bold] repetition(s) of cases from [cyan]{cases}[/cyan]."
+    )
+    report = run_live_evaluation(cases, output, repetitions=repetitions)
+    summary = report["summary"]
+    table = Table(title="Evaluation baseline")
+    table.add_column("Metric")
+    table.add_column("Result")
+    table.add_row("Passed runs", f"{summary['passed_runs']} / {summary['total_runs']}")
+    table.add_row("Pass rate", f"{summary['pass_rate']:.1%}")
+    table.add_row("Median latency", f"{summary['median_latency_seconds']:.3f} seconds")
+    cost = summary["estimated_model_cost_usd"]
+    table.add_row("Estimated model cost", "unavailable" if cost is None else f"${cost:.6f}")
+    table.add_row("Saved report", str(output))
+    console.print(table)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Read-only crypto market analysis agent")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -179,6 +205,15 @@ def build_parser() -> argparse.ArgumentParser:
     debug.add_argument("prompt", help="Question to send through the graph")
     chat = subcommands.add_parser("chat", help="Start or resume a persistent conversation")
     chat.add_argument("--thread", help="Thread ID to resume or create")
+    evaluate = subcommands.add_parser("evaluate", help="Run the fixed live evaluation dataset")
+    evaluate.add_argument("--cases", type=Path, default=Path("evals/cases.jsonl"))
+    evaluate.add_argument("--output", type=Path, default=Path("evals/baseline-results.json"))
+    evaluate.add_argument("--repetitions", type=int, default=2)
+    evaluate.add_argument(
+        "--live",
+        action="store_true",
+        help="Permit paid model and quota-limited provider requests",
+    )
     return parser
 
 
@@ -190,3 +225,5 @@ def main() -> None:
         debug_graph(args.prompt)
     elif args.command == "chat":
         interactive_chat(args.thread)
+    elif args.command == "evaluate":
+        evaluate_agent(args.cases, args.output, args.repetitions, args.live)
