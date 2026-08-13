@@ -445,6 +445,44 @@ footer {
   line-height: 1.4;
 }
 
+.chart-promise {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -10px 0 24px;
+  padding: 12px 14px;
+  border: 1px dashed #267b2e;
+  background: rgba(57, 255, 20, 0.025);
+}
+
+.chart-promise svg {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: var(--acid);
+  stroke-linecap: square;
+  stroke-width: 1.4;
+}
+
+.chart-promise div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chart-promise strong {
+  color: var(--acid);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.chart-promise span {
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
 .examples-label {
   margin-bottom: 10px;
   color: var(--muted);

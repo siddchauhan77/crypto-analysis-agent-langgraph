@@ -1,4 +1,4 @@
-const STORAGE_KEY = "signal-desk-history-v1";
+const STORAGE_KEY = "signal-desk-history-v2";
 const ACCESS_KEY = "signal-desk-access-v1";
 const TOUR_KEY = "signal-desk-tour-v1";
 const MAX_HISTORY = 12;
@@ -33,13 +33,13 @@ const tourSteps = [
     example: "“Compare BTC and ETH using current price and 24-hour change.”",
   },
   {
-    title: "Let the agent choose its tools",
-    copy: "Select Run analysis. Signal Desk decides whether it needs current prices, recent news, or both.",
+    title: "Run the analysis",
+    copy: "Signal Desk checks current prices, recent news, or both. The question determines which source it opens.",
     example: "Market question → tool choice → live provider data → answer",
   },
   {
-    title: "Verify before you trust",
-    copy: "Read the answer, then check the source and retrieval time shown below it. The app provides research, not trade instructions.",
+    title: "Check the evidence",
+    copy: "Read the source and retrieval time under the answer. Price questions also show a chart tied to the same provider response.",
     example: "Look for: Source · Tool · Retrieved time",
   },
 ];
@@ -174,12 +174,12 @@ function renderPriceChart(chart) {
   header.className = "market-chart-header";
   const title = document.createElement("div");
   const kicker = document.createElement("span");
-  kicker.textContent = "> PRICE VISUALIZATION";
+  kicker.textContent = "> PRICE CHART";
   const heading = document.createElement("strong");
   heading.textContent = "CURRENT PRICE // USD";
   title.append(kicker, heading);
   const note = document.createElement("span");
-  note.textContent = "LIVE SNAPSHOT · NOT PRICE HISTORY";
+  note.textContent = "CURRENT SNAPSHOT · ONE RETRIEVAL TIME";
   header.append(title, note);
 
   const plot = document.createElement("div");

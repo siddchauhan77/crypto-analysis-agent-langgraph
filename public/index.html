@@ -16,7 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=VT323&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=20260813-chart2" />
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -38,9 +38,10 @@
       <aside class="context-rail" aria-label="Agent context">
         <section class="rail-intro">
           <p class="eyebrow">Market intelligence</p>
-          <h1>Ask the market.<br />Not model memory.</h1>
+          <h1>Current data.<br />Sourced answers.</h1>
           <p>
-            Current crypto data and recent headlines, routed through a bounded LangGraph agent.
+            Compare crypto prices and scan recent headlines. Signal Desk checks live providers
+            before it answers.
           </p>
         </section>
 
@@ -80,7 +81,7 @@
             <span class="terminal-dot"></span>
             <div class="session-title">
               <strong>TERMINAL_01 // SIGNAL DESK</strong>
-              <span>Crypto research with current sources</span>
+              <span>Prices and headlines from live providers</span>
             </div>
           </div>
           <button class="text-button" id="new-chat" type="button">New session</button>
@@ -89,7 +90,7 @@
         <div class="messages" id="messages" aria-live="polite">
           <section class="welcome" id="welcome">
             <p class="eyebrow">Awaiting query</p>
-            <h2>Ask a question.<br />Get a sourced answer.</h2>
+            <h2>Ask a market question.<br />Check the source.</h2>
             <p>
               Choose an example below, or type your own crypto market question in the highlighted
               box. Signal Desk checks live sources before answering.
@@ -99,6 +100,15 @@
               <li><span>2</span><div><strong>Run analysis</strong><small>The agent selects the right data tools.</small></div></li>
               <li><span>3</span><div><strong>Check the evidence</strong><small>Review sources and retrieval time.</small></div></li>
             </ol>
+            <div class="chart-promise">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <path d="M5 25h22M7 22v-6h5v6M14 22V9h5v13M21 22V4h5v18" />
+              </svg>
+              <div>
+                <strong>Price answers include a chart</strong>
+                <span>Exact USD values, 24-hour change, provider, and retrieval time.</span>
+              </div>
+            </div>
             <div class="examples-label">Try an example</div>
             <div class="prompt-grid" aria-label="Suggested questions">
               <button class="prompt-card" type="button" data-prompt="Compare BTC and ETH using current price and 24-hour change.">
@@ -169,9 +179,9 @@
 
     <footer>
       <span>Built with LangGraph + OpenAI</span>
-      <span>Current data stays provider-dependent</span>
+      <span>Prices: FreeCryptoAPI · News: NewsAPI</span>
     </footer>
 
-    <script src="/app.js" defer></script>
+    <script src="/app.js?v=20260813-chart2" defer></script>
   </body>
 </html>

@@ -32,6 +32,17 @@ Safety:
 - Do not provide personalized investment, tax, or legal advice.
 - State uncertainty and provider limitations in plain language.
 - Keep answers concise and comparison-friendly.
+
+Writing style:
+- Lead with the answer. Skip phrases such as "Here's," "It's important to note," and "In
+  summary."
+- Use short, natural sentences and specific numbers. Avoid promotional language and generic
+  commentary.
+- Do not use formulaic "not X, but Y" contrast sentences.
+- Use a compact Markdown table when comparing two or more coins. Do not repeat the full table in
+  prose.
+- End after the evidence or decision-relevant observation. Do not restate the answer in a closing
+  summary.
 """
 
 TOOL_LIMIT_MESSAGE = (
