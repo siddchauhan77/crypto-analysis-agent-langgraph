@@ -41,15 +41,59 @@ function appendInlineFormatting(node, text) {
   });
 }
 
+function tableCells(line) {
+  return line.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map((cell) => cell.trim());
+}
+
+function isTableDivider(line) {
+  const cells = tableCells(line);
+  return cells.length > 1 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+}
+
 function renderAnswer(node, text) {
   node.replaceChildren();
-  text.split("\n").forEach((rawLine) => {
+  const lines = text.split("\n");
+  for (let index = 0; index < lines.length; index += 1) {
+    const rawLine = lines[index];
     const line = rawLine.trim();
+    const nextLine = lines[index + 1]?.trim() || "";
+    if (line.startsWith("|") && isTableDivider(nextLine)) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "answer-table-wrap";
+      const table = document.createElement("table");
+      const head = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      tableCells(line).forEach((value) => {
+        const cell = document.createElement("th");
+        appendInlineFormatting(cell, value);
+        headRow.append(cell);
+      });
+      head.append(headRow);
+      table.append(head);
+
+      const body = document.createElement("tbody");
+      index += 2;
+      while (index < lines.length && lines[index].trim().startsWith("|")) {
+        const row = document.createElement("tr");
+        tableCells(lines[index]).forEach((value) => {
+          const cell = document.createElement("td");
+          appendInlineFormatting(cell, value);
+          row.append(cell);
+        });
+        body.append(row);
+        index += 1;
+      }
+      index -= 1;
+      table.append(body);
+      wrapper.append(table);
+      node.append(wrapper);
+      continue;
+    }
     if (!line) {
       const space = document.createElement("div");
       space.className = "answer-space";
       node.append(space);
-      return;
+      continue;
     }
     const block = document.createElement("div");
     if (line.startsWith("### ")) {
@@ -66,7 +110,7 @@ function renderAnswer(node, text) {
       appendInlineFormatting(block, line);
     }
     node.append(block);
-  });
+  }
 }
 
 function addMessage(role, content, metadata = {}) {
