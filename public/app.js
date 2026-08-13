@@ -1,5 +1,6 @@
 const STORAGE_KEY = "signal-desk-history-v1";
 const ACCESS_KEY = "signal-desk-access-v1";
+const TOUR_KEY = "signal-desk-tour-v1";
 const MAX_HISTORY = 12;
 
 const messagesNode = document.querySelector("#messages");
@@ -11,9 +12,37 @@ const newChatButton = document.querySelector("#new-chat");
 const accessPanel = document.querySelector("#access-panel");
 const accessInput = document.querySelector("#access-code");
 const saveAccessButton = document.querySelector("#save-access");
+const openTourButton = document.querySelector("#open-tour");
+const tourDialog = document.querySelector("#tour-dialog");
+const closeTourButton = document.querySelector("#close-tour");
+const tourNextButton = document.querySelector("#tour-next");
+const tourKicker = document.querySelector("#tour-kicker");
+const tourTitle = document.querySelector("#tour-title");
+const tourCopy = document.querySelector("#tour-copy");
+const tourExample = document.querySelector("#tour-example");
+const tourProgress = [...document.querySelectorAll(".tour-progress span")];
 
 let history = readHistory();
 let pendingMessage = "";
+let tourStep = 0;
+
+const tourSteps = [
+  {
+    title: "Start with a specific question",
+    copy: "Use an example card or type your own question. Name the coins and comparison points you care about.",
+    example: "“Compare BTC and ETH using current price and 24-hour change.”",
+  },
+  {
+    title: "Let the agent choose its tools",
+    copy: "Select Run analysis. Signal Desk decides whether it needs current prices, recent news, or both.",
+    example: "Market question → tool choice → live provider data → answer",
+  },
+  {
+    title: "Verify before you trust",
+    copy: "Read the answer, then check the source and retrieval time shown below it. The app provides research, not trade instructions.",
+    example: "Look for: Source · Tool · Retrieved time",
+  },
+];
 
 function readHistory() {
   try {
@@ -243,6 +272,37 @@ function resizeComposer() {
   question.style.height = `${Math.min(question.scrollHeight, 150)}px`;
 }
 
+function fillComposer(message) {
+  question.value = message;
+  resizeComposer();
+  form.scrollIntoView({ behavior: "smooth", block: "end" });
+  form.classList.remove("flash");
+  window.requestAnimationFrame(() => form.classList.add("flash"));
+  window.setTimeout(() => form.classList.remove("flash"), 900);
+  question.focus();
+}
+
+function renderTourStep() {
+  const step = tourSteps[tourStep];
+  tourKicker.textContent = `30-second tour · Step ${tourStep + 1} of ${tourSteps.length}`;
+  tourTitle.textContent = step.title;
+  tourCopy.textContent = step.copy;
+  tourExample.textContent = step.example;
+  tourProgress.forEach((item, index) => item.classList.toggle("active", index <= tourStep));
+  tourNextButton.textContent = tourStep === tourSteps.length - 1 ? "Try an example" : "Next step";
+}
+
+function openTour() {
+  tourStep = 0;
+  renderTourStep();
+  if (!tourDialog.open) tourDialog.showModal();
+}
+
+function closeTour() {
+  localStorage.setItem(TOUR_KEY, "seen");
+  tourDialog.close();
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   submitMessage(question.value);
@@ -258,8 +318,22 @@ question.addEventListener("keydown", (event) => {
 question.addEventListener("input", resizeComposer);
 
 document.querySelectorAll("[data-prompt]").forEach((button) => {
-  button.addEventListener("click", () => submitMessage(button.dataset.prompt || ""));
+  button.addEventListener("click", () => fillComposer(button.dataset.prompt || ""));
 });
+
+openTourButton.addEventListener("click", openTour);
+closeTourButton.addEventListener("click", closeTour);
+tourNextButton.addEventListener("click", () => {
+  if (tourStep < tourSteps.length - 1) {
+    tourStep += 1;
+    renderTourStep();
+    return;
+  }
+  closeTour();
+  fillComposer("Compare BTC and ETH using current price and 24-hour change.");
+});
+
+tourDialog.addEventListener("cancel", () => localStorage.setItem(TOUR_KEY, "seen"));
 
 newChatButton.addEventListener("click", () => {
   history = [];
@@ -274,6 +348,7 @@ saveAccessButton.addEventListener("click", () => {
   accessInput.value = "";
   accessPanel.classList.add("hidden");
   if (pendingMessage) submitMessage(pendingMessage, false);
+  else question.focus();
 });
 
 accessInput.addEventListener("keydown", (event) => {
@@ -281,4 +356,9 @@ accessInput.addEventListener("keydown", (event) => {
 });
 
 history.forEach((item) => addMessage(item.role === "user" ? "user" : "agent", item.content));
-question.focus();
+if (!sessionStorage.getItem(ACCESS_KEY)) accessPanel.classList.remove("hidden");
+if (!localStorage.getItem(TOUR_KEY) && history.length === 0) {
+  window.setTimeout(openTour, 350);
+} else {
+  question.focus();
+}

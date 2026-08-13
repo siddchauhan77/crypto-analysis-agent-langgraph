@@ -30,6 +30,7 @@
       <div class="header-status" aria-label="Application status">
         <span class="status-pill"><i></i>Live sources</span>
         <span class="status-pill muted">Read-only</span>
+        <button class="tour-button" id="open-tour" type="button">How to use</button>
       </div>
     </header>
 
@@ -77,19 +78,28 @@
         <div class="chat-topbar">
           <div>
             <span class="terminal-dot"></span>
-            <strong>Analyst session</strong>
+            <div class="session-title">
+              <strong>Ask Signal Desk</strong>
+              <span>Crypto research with current sources</span>
+            </div>
           </div>
           <button class="text-button" id="new-chat" type="button">New session</button>
         </div>
 
         <div class="messages" id="messages" aria-live="polite">
           <section class="welcome" id="welcome">
-            <p class="eyebrow">Bounded agent. Current evidence.</p>
-            <h2>What do you want to understand?</h2>
+            <p class="eyebrow">Start here</p>
+            <h2>Ask a question.<br />Get a sourced answer.</h2>
             <p>
-              Ask for a comparison, recent coverage, or a follow-up. Every current claim should
-              name its provider and retrieval time.
+              Choose an example below, or type your own crypto market question in the highlighted
+              box. Signal Desk checks live sources before answering.
             </p>
+            <ol class="quick-start" aria-label="How to use Signal Desk">
+              <li><span>1</span><div><strong>Choose or type</strong><small>Pick an example or write your question.</small></div></li>
+              <li><span>2</span><div><strong>Run analysis</strong><small>The agent selects the right data tools.</small></div></li>
+              <li><span>3</span><div><strong>Check the evidence</strong><small>Review sources and retrieval time.</small></div></li>
+            </ol>
+            <div class="examples-label">Try an example</div>
             <div class="prompt-grid" aria-label="Suggested questions">
               <button class="prompt-card" type="button" data-prompt="Compare BTC and ETH using current price and 24-hour change.">
                 <span>01</span><strong>Compare BTC and ETH</strong><small>Current market data</small>
@@ -100,17 +110,14 @@
               <button class="prompt-card" type="button" data-prompt="Compare SOL and ETH, then summarize recent news context without claiming causation.">
                 <span>03</span><strong>SOL vs ETH context</strong><small>Multi-tool synthesis</small>
               </button>
-              <button class="prompt-card" type="button" data-prompt="Should I put all my savings into Bitcoin today?">
-                <span>04</span><strong>Test the safety boundary</strong><small>Trade refusal</small>
-              </button>
             </div>
           </section>
         </div>
 
         <div class="access-panel hidden" id="access-panel" role="status">
           <div>
-            <strong>Demo access required</strong>
-            <span>Enter the shared code. It stays in this browser session.</span>
+            <strong>Step 1. Unlock the demo</strong>
+            <span>Enter the shared access code once. It stays in this browser session.</span>
           </div>
           <label>
             <span class="sr-only">Demo access code</span>
@@ -120,25 +127,45 @@
         </div>
 
         <form class="composer" id="composer">
-          <label class="sr-only" for="question">Ask a crypto market question</label>
-          <textarea
-            id="question"
-            name="question"
-            rows="1"
-            maxlength="1200"
-            placeholder="Ask about current prices, comparisons, or recent news..."
-            required
-          ></textarea>
-          <div class="composer-footer">
-            <span><kbd>Enter</kbd> send · <kbd>Shift</kbd> + <kbd>Enter</kbd> new line</span>
+          <div class="composer-heading">
+            <label for="question">Ask Signal Desk</label>
+            <span>Current prices, coin comparisons, or recent news</span>
+          </div>
+          <div class="composer-input-row">
+            <textarea
+              id="question"
+              name="question"
+              rows="2"
+              maxlength="1200"
+              placeholder="Example: Compare BTC and ETH using current price and 24-hour change."
+              required
+            ></textarea>
             <button class="send-button" id="send-button" type="submit">
               <span>Run analysis</span>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6-7-1Z" /></svg>
             </button>
           </div>
+          <div class="composer-footer">
+            <span><kbd>Enter</kbd> sends. <kbd>Shift</kbd> + <kbd>Enter</kbd> adds a new line.</span>
+            <span class="composer-status"><i></i>Answers include source details</span>
+          </div>
         </form>
       </section>
     </main>
+
+    <dialog class="tour-dialog" id="tour-dialog" aria-labelledby="tour-title">
+      <div class="tour-progress" aria-label="Tutorial progress">
+        <span class="active"></span><span></span><span></span>
+      </div>
+      <p class="eyebrow" id="tour-kicker">30-second tour · Step 1 of 3</p>
+      <h2 id="tour-title">Start with a specific question</h2>
+      <p id="tour-copy">Use an example card or type your own question. Specific coins, time ranges, and comparison points produce clearer analysis.</p>
+      <div class="tour-example" id="tour-example">“Compare BTC and ETH using current price and 24-hour change.”</div>
+      <div class="tour-actions">
+        <button class="text-button" id="close-tour" type="button">Skip tour</button>
+        <button class="tour-next" id="tour-next" type="button">Next step</button>
+      </div>
+    </dialog>
 
     <footer>
       <span>Built with LangGraph + OpenAI</span>
