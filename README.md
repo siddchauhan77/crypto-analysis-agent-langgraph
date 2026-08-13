@@ -10,6 +10,62 @@ Phases 1 through 6 are complete. The project has secret-safe configuration, type
 
 The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
 
+## Project story: from API calls to an evaluated agent
+
+Most AI demos stop after the model produces a plausible answer. That is where the harder engineering work begins. Crypto information changes quickly, so a useful research assistant should know when it needs current data, retrieve it from an appropriate source, and show the evidence behind its response.
+
+This project turns that requirement into a controlled LangGraph workflow. A user asks about current prices, coin comparisons, supported symbols, or recent news. The model interprets the request, LangGraph routes the required tool calls, typed clients retrieve data from FreeCryptoAPI or NewsAPI, and the model returns a grounded response with sources and retrieval times. The browser presents the research answer and comparison chart while follow-up questions retain bounded conversation context.
+
+### Why LangGraph
+
+A procedural script follows a path selected in advance by the developer. This agent selects a path based on the user's question:
+
+1. The user submits a question.
+2. OpenAI interprets the request.
+3. LangGraph checks the requested tool calls.
+4. The selected tool retrieves current information.
+5. The normalized result returns to the model.
+6. The model produces a grounded answer.
+
+The graph limits each turn to six requested tool calls, rejects identical repeated calls, executes tools sequentially, and returns structured provider failures. Greetings and timeless explanations do not require a provider request. These controls make the model's actions observable and bounded.
+
+### Memory is an infrastructure choice
+
+The local terminal and hosted browser use different memory strategies. The terminal stores durable SQLite checkpoints under named thread IDs, so a user can close the process and resume the same research conversation. The hosted browser resends at most 12 visible messages with each request because Vercel's serverless filesystem is not durable. API credentials stay on the server in both cases.
+
+SQLite keeps the local version simple, but it does not provide shared, cross-device persistence. A broader release would replace it with a hosted checkpointer.
+
+### Trust requires visible evidence
+
+Current market claims require fresh tool data. Results identify the provider and retrieval time. Missing provider values remain missing instead of becoming zero. News-based explanations stay labeled as hypotheses unless a source directly establishes causation.
+
+For example, the agent should not claim that institutional demand caused a Bitcoin price movement based on timing alone. It should report the measured movement, cite relevant coverage, and separate sourced facts from interpretation.
+
+### Testing the agent instead of trusting one demo
+
+The evaluation baseline uses a fixed 20-case dataset covering market data, symbol checks, news, multi-tool synthesis, threaded follow-ups, and safety. Each case ran twice against a fresh thread.
+
+- 37 of 40 runs passed: 92.5%
+- Median response time: 5.574 seconds
+- Estimated OpenAI model cost: $0.021383
+- Tool choice, required tools, symbols, provider success, timestamps, and trade-safety checks: 100%
+
+Three runs failed. Recording those failures matters more than presenting a perfect screen capture because they expose model variability and create a measurable improvement target. The full method and known limits are documented in [the evaluation report](docs/evaluation-report.md).
+
+### What the project demonstrates
+
+- Translating a research workflow into product requirements
+- Integrating external data providers through typed clients and tools
+- Designing explicit model, safety, and cost boundaries
+- Handling provider failures and incomplete values
+- Measuring behavior through a repeatable evaluation set
+- Shipping a browser interface for non-technical users
+- Documenting known limits instead of hiding them
+
+The value is not the number of connected APIs. The value is turning uncertain model behavior into a bounded, measurable research workflow.
+
+The next production steps are historical price charts, durable hosted memory, user authentication, shared rate limits, deployment tracing, and structured analyst feedback. The current release remains a read-only research demonstration. It does not predict prices, recommend trades, access wallets, or execute transactions.
+
 ## Architecture target
 
 ```text

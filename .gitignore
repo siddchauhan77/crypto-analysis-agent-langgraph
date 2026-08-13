@@ -12,3 +12,4 @@ dist/
 *.db
 .data/
 .vercel
+.superpowers/
