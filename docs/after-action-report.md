@@ -21,12 +21,13 @@ Current claims include a provider and retrieval time. The system separates sourc
 Verified August 13, 2026:
 
 - Ruff lint: passed
-- Test collection: 63
-- Offline tests: 61 passed
+- Test collection: 64
+- Offline tests: 62 passed
 - Opt-in live provider tests: 2 skipped during the offline closeout run
-- Fixed live evaluation: 37 of 40 runs passed, or 92.5%
-- Median evaluation latency: 5.574 seconds
-- Estimated OpenAI model cost for the recorded baseline: $0.021383
+- Fixed live evaluation after regression upgrade: 40 of 40 runs passed
+- Initial baseline retained as history: 37 of 40 runs passed
+- Median regression-run latency: 4.835 seconds
+- Estimated OpenAI model cost for the regression run: $0.022025
 - Live homepage: HTTP 200
 - Live health endpoint: HTTP 200, read-only mode, access code required
 - Live browser workflow: BTC and ETH comparison returned current prices, 24-hour changes, a chart, FreeCryptoAPI attribution, and a retrieval timestamp
@@ -79,11 +80,11 @@ Cost: The product does not serve execution-oriented traders.
 
 ## What did not work as planned
 
-- Three of 40 live evaluation runs missed response-contract rules. The system is measured, not deterministic.
+- The initial baseline had three response-contract misses. Deterministic graph-boundary evidence and regression tests raised the unchanged suite from 37 of 40 to 40 of 40.
 - FreeCryptoAPI's free plan did not provide every planned field. Unsupported market-cap and volume fields were removed instead of inferred.
 - A provider request initially encoded the multi-symbol separator incorrectly. FreeCryptoAPI required a literal `+`, not `%2B`.
 - Vercel does not provide durable SQLite persistence. The browser uses bounded local history instead.
-- The browser initially displayed a stale count of 55 tests after the suite grew to 61. Closeout corrected the figure.
+- The browser initially displayed stale test counts as the suite grew. Closeout now reports 62 passing offline tests.
 - The project has current-price comparison bars, not historical TradingView-style time-series charts.
 
 ## Known production gaps

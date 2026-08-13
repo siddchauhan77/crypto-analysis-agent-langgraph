@@ -22,11 +22,11 @@ Task: Turn the brief into a testable product a reviewer could use without exposi
 
 Action: I defined a read-only research user, separated goals from non-goals, designed three narrow tools, added source and retrieval-time requirements, capped tool calls, and wrote a fixed evaluation set before treating the demo as complete.
 
-Result: I shipped a CLI and browser interface. The live baseline passed 37 of 40 repeated runs. Tool routing, symbols, provider success, timestamps, and trade-safety checks scored 100%.
+Result: I shipped a CLI and browser interface. The first live baseline passed 37 of 40 repeated runs. I classified the three misses, added deterministic evidence enforcement and regression tests, then passed 40 of 40 on the unchanged set.
 
 ### 60-second version
 
-“I started with a broad course brief for a crypto agent. The missing part was a release standard. I narrowed the user promise to read-only market research, designed three tools for symbol lookup, current market data, and recent news, then added source timestamps, a six-call ceiling, and a fixed 20-case evaluation set. I reused the same LangGraph agent in a durable local CLI and a hosted browser interface. Across 40 live evaluation runs, 37 passed every rule, while routing, symbol use, provider success, timestamps, and trade safety scored 100%. The main lesson was to define the agent's operating boundary before polishing the interface.”
+“I started with a broad course brief for a crypto agent. The missing part was a release standard. I narrowed the user promise to read-only market research, designed three tools for symbol lookup, current market data, and recent news, then added source timestamps, a six-call ceiling, and a fixed 20-case evaluation set. I reused the same LangGraph agent in a durable local CLI and a hosted browser interface. The first 40-run evaluation passed 37 runs. I traced the misses to response-contract fields, moved those invariants to the graph boundary, added regression tests, and passed all 40 runs on the unchanged set. The lesson was to define and enforce the operating boundary before polishing the interface.”
 
 One-line proof: “I turned a broad agent brief into a bounded product with three tools, two interfaces, and a 40-run evaluation baseline.”
 
@@ -80,15 +80,15 @@ Situation: Single demo prompts looked successful, but they did not measure repea
 
 Task: Create a repeatable release baseline across routing, grounding, follow-ups, safety, latency, and cost.
 
-Action: I wrote 20 fixed cases, ran each twice in a fresh thread, scored deterministic properties, and saved the full results. I kept the three failed runs in the report instead of hiding them.
+Action: I wrote 20 fixed cases, ran each twice in a fresh thread, scored deterministic properties, and saved the full results. I kept the three failed runs in the report, classified their shared root cause, added focused regression tests, and moved deterministic evidence requirements from model prompt compliance to graph-boundary enforcement.
 
-Result: The baseline reached 92.5%, or 37 of 40 runs. The failures identified response-contract weaknesses while core tool and safety checks scored 100%.
+Result: The first baseline reached 37 of 40. The unchanged evaluation set then reached 40 of 40 after the upgrade. The result measures the fixed suite, not production reliability.
 
 ### 60-second version
 
-“The biggest risk was mistaking one clean demo for reliable agent behavior. I built a fixed set of 20 cases across market data, symbol checks, news, synthesis, memory, and safety, then ran every case twice in a fresh thread. Thirty-seven of 40 runs passed. I kept the three failures and categorized them as response-contract misses. At the same time, tool choice, required tools, symbols, provider success, timestamps, and trade safety scored 100%. The failure story is useful because it shows where I would focus the next iteration instead of claiming the model is deterministic.”
+“The biggest risk was mistaking one clean demo for reliable agent behavior. I built 20 fixed cases across market data, symbol checks, news, synthesis, memory, and safety, then ran each twice in a fresh thread. The first run passed 37 of 40. Two answers omitted a provider label and one omitted a causal caveat. I traced all three to deterministic requirements left to prompt compliance. I enforced those fields at the graph boundary, added regression tests, and reran the unchanged suite at 40 of 40. I present this as measured behavior on a fixed set, not production reliability.”
 
-One-line proof: “I converted three failed live runs into a measured backlog instead of hiding them behind a polished demo.”
+One-line proof: “I converted three failed live runs into root causes, regression tests, a boundary correction, and a 40-of-40 rerun.”
 
 ## Story 5: Shipping a safe public demo
 
@@ -112,7 +112,7 @@ One-line proof: “I moved the same tested agent from a local CLI to a guarded b
 
 ## Tell me about yourself bridge
 
-“I work at the point where a user workflow becomes a tested AI system. In this project, I took a broad crypto-agent brief, narrowed it to read-only research, integrated two live data providers through three tools, and built an explicit LangGraph loop with memory, cost limits, and failure handling. I then created a 20-case evaluation set, ran 40 live trials, and deployed the same agent through a browser interface. The result was a 92.5% baseline with transparent failures. That combination of workflow translation, implementation, evaluation, and user-facing delivery is why I am targeting FDE and AI Solutions Engineering roles.”
+“I work at the point where a user workflow becomes a tested AI system. In this project, I took a broad crypto-agent brief, narrowed it to read-only research, integrated two live data providers through three tools, and built an explicit LangGraph loop with memory, cost limits, and failure handling. I created a 20-case evaluation set, ran 40 live trials, and deployed the same agent through a browser interface. The first run passed 37 of 40. I classified the misses, enforced the deterministic contract at the graph boundary, added regressions, and passed 40 of 40 on the unchanged set. That combination of workflow translation, implementation, evaluation, and user-facing delivery is why I am targeting FDE and AI Solutions Engineering roles.”
 
 ## Credibility boundaries
 
@@ -139,7 +139,7 @@ Skills not yet proved by this project:
 ## Practice questions
 
 1. Why did this need an agent instead of a fixed workflow?
-2. What were the three failed evaluation runs, and how would you address them?
+2. What were the three failed evaluation runs, how did you address them, and why does 40 of 40 still not mean production reliability?
 3. Why did you choose SQLite locally but not on Vercel?
 4. What would you measure with three real crypto analysts?
 5. Where would you add human approval if the product gained external actions?

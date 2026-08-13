@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 61 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 62 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
 
@@ -45,12 +45,12 @@ For example, the agent should not claim that institutional demand caused a Bitco
 
 The evaluation baseline uses a fixed 20-case dataset covering market data, symbol checks, news, multi-tool synthesis, threaded follow-ups, and safety. Each case ran twice against a fresh thread.
 
-- 37 of 40 runs passed: 92.5%
-- Median response time: 5.574 seconds
-- Estimated OpenAI model cost: $0.021383
-- Tool choice, required tools, symbols, provider success, timestamps, and trade-safety checks: 100%
+- 40 of 40 runs passed: 100% on the fixed evaluation set
+- Median response time: 4.835 seconds
+- Estimated OpenAI model cost: $0.022025
+- Every deterministic check passed in all 40 runs
 
-Three runs failed. Recording those failures matters more than presenting a perfect screen capture because they expose model variability and create a measurable improvement target. The full method and known limits are documented in [the evaluation report](docs/evaluation-report.md).
+The first run passed 37 of 40. Two threaded news answers omitted the provider label, and one synthesis answer omitted an explicit causal caveat. Those failures stayed in the record. The graph now adds deterministic provider, retrieval-time, and causal-uncertainty evidence from the current turn's tool results. Regression tests cover the boundary, and the unchanged 40-run suite then passed. This result measures one fixed set. It does not establish production reliability. The full method, failure table, and limits are documented in [the evaluation report](docs/evaluation-report.md).
 
 ### What the project demonstrates
 
@@ -191,9 +191,9 @@ Phase 6 uses a fixed 20-case dataset covering market data, symbol checks, news, 
 uv run crypto-agent evaluate --live --repetitions 2
 ```
 
-The `--live` flag is required because the command consumes OpenAI tokens and provider quota. The August 12, 2026 baseline passed 37 of 40 runs, or 92.5%. Median latency was 5.574 seconds, and estimated OpenAI model cost was $0.021383. Tool choice, required tools, symbols, provider success, timestamps, and trade-safety checks scored 100%.
+The `--live` flag is required because the command consumes OpenAI tokens and provider quota. The initial August 12, 2026 baseline passed 37 of 40 runs. After converting the three response-contract misses into regression coverage and enforcing evidence at the graph boundary, the unchanged suite passed 40 of 40 runs on August 13. Median latency was 4.835 seconds, and estimated OpenAI model cost was $0.022025.
 
-See [docs/evaluation-report.md](docs/evaluation-report.md) for the methodology, remaining failures, and limits. The full machine-readable run is [evals/baseline-results.json](evals/baseline-results.json).
+See [docs/evaluation-report.md](docs/evaluation-report.md) for the methodology, regression analysis, and limits. The full machine-readable run is [evals/baseline-results.json](evals/baseline-results.json).
 
 ## How to demo and share it
 

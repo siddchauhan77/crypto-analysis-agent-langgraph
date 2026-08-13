@@ -145,8 +145,51 @@ def test_graph_executes_selected_tool_and_returns_to_model(
     payload = json.loads(tool_messages[0].content)
     assert payload["source"] == expected_source
     assert payload["retrieved_at"]
-    assert result["messages"][-1].content == "Grounded answer."
+    final = result["messages"][-1].content
+    assert final.startswith("Grounded answer.")
+    assert f"Data provider: {expected_source}" in final
+    assert f"Retrieved: {payload['retrieved_at']}" in final
     assert result["tool_call_count"] == 1
+
+
+def test_graph_adds_causal_caveat_when_market_and_news_are_combined(
+    tool_registry: tuple,
+) -> None:
+    model = RecordingFakeModel(
+        responses=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    tool_call(
+                        "get_crypto_market_data",
+                        {"symbols": ["BTC"]},
+                        "market-1",
+                    )
+                ],
+            ),
+            AIMessage(
+                content="",
+                tool_calls=[
+                    tool_call(
+                        "search_crypto_news",
+                        {"query": "bitcoin", "limit": 2},
+                        "news-1",
+                    )
+                ],
+            ),
+            AIMessage(content="BTC moved while these headlines were published."),
+        ]
+    )
+    graph = build_agent_graph(model, tool_registry)
+
+    result = graph.invoke(
+        {"messages": [HumanMessage(content="Give BTC movement and recent news context")]}
+    )
+
+    final = result["messages"][-1].content
+    assert "Data provider: FreeCryptoAPI" in final
+    assert "Data provider: NewsAPI" in final
+    assert "The headlines do not establish what caused the price movement." in final
 
 
 def test_comparison_uses_one_multi_symbol_market_call(tool_registry: tuple) -> None:
@@ -243,7 +286,10 @@ def test_identical_tool_call_is_rejected_before_second_provider_request(
     tool_messages = [message for message in result["messages"] if isinstance(message, ToolMessage)]
     assert len(tool_messages) == 2
     assert json.loads(tool_messages[1].content)["error_type"] == "duplicate_tool_call"
-    assert result["messages"][-1].content == "Provider result explained."
+    final = result["messages"][-1].content
+    assert final.startswith("Provider result explained.")
+    assert "Data provider: FreeCryptoAPI" in final
+    assert "Retrieved:" in final
     assert result["tool_call_count"] == 2
 
 

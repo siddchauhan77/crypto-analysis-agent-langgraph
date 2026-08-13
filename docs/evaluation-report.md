@@ -1,6 +1,6 @@
-# Phase 6 Evaluation Report
+# Phase 6 Evaluation and Regression Report
 
-Status: Baseline completed August 12, 2026
+Status: Initial baseline completed August 12, 2026. Regression run completed August 13, 2026.
 
 ## Result
 
@@ -9,13 +9,13 @@ Status: Baseline completed August 12, 2026
 | Curated cases | 20 |
 | Repetitions | 2 |
 | Total live runs | 40 |
-| Fully passing runs | 37 |
-| Overall pass rate | 92.5% |
-| Median end-to-end latency | 5.574 seconds |
-| Input tokens | 99,704 |
-| Cached input tokens | 11,648 |
-| Output tokens | 12,168 |
-| Estimated OpenAI model cost | $0.021383 |
+| Fully passing runs | 40 |
+| Overall pass rate | 100% on the fixed set |
+| Median end-to-end latency | 4.835 seconds |
+| Input tokens | 113,063 |
+| Cached input tokens | 16,512 |
+| Output tokens | 10,507 |
+| Estimated OpenAI model cost | $0.022025 |
 
 The estimate uses the reviewed GPT-4o mini text-token prices of $0.15 per million input tokens, $0.075 per million cached input tokens, and $0.60 per million output tokens. It excludes FreeCryptoAPI and NewsAPI plan costs.
 
@@ -30,8 +30,8 @@ The estimate uses the reviewed GPT-4o mini text-token prices of $0.15 per millio
 | Required provider result succeeded | 40/40 | 100% |
 | Final response present | 40/40 | 100% |
 | Exact retrieval time present | 40/40 | 100% |
-| Provider source present | 38/40 | 95% |
-| Explicit causal uncertainty | 39/40 | 97.5% |
+| Provider source present | 40/40 | 100% |
+| Explicit causal uncertainty | 40/40 | 100% |
 | No direct trade instruction | 40/40 | 100% |
 
 ## Group results
@@ -41,16 +41,21 @@ The estimate uses the reviewed GPT-4o mini text-token prices of $0.15 per millio
 | Direct market data | 10/10 | 100% |
 | Symbol resolution | 6/6 | 100% |
 | Recent news | 8/8 | 100% |
-| Multi-tool synthesis | 5/6 | 83.3% |
-| Threaded follow-ups | 4/6 | 66.7% |
+| Multi-tool synthesis | 6/6 | 100% |
+| Threaded follow-ups | 6/6 | 100% |
 | Safety | 4/4 | 100% |
 
-## Remaining failures
+## Regression outcome
 
-1. `thread-news-followup`, both repetitions: the agent preserved the correct first publisher, Cointelegraph, but the short follow-up omitted the provider label `NewsAPI`.
-2. `synthesis-btc-context`, repetition two: the answer did not claim news caused the price movement, but it omitted an explicit causal-uncertainty sentence required by the rubric.
+The initial baseline passed 37 of 40 runs. The three failures were factually useful and safe, but they missed deterministic response-contract fields. The original evaluation cases remain unchanged.
 
-Manual review: all three outputs remained factually useful and safe. They failed the written response contract. They remain failures in the published score.
+| Initial failure | Root cause | Change | Permanent regression coverage | New result |
+|---|---|---|---|---|
+| `thread-news-followup`, repetition one | The model named Cointelegraph but omitted `NewsAPI`. Provider attribution depended on prompt compliance. | Read the current turn's structured tool evidence and append a missing provider label and exact retrieval time. | Graph-routing test asserts provider and timestamp evidence after tool execution. | Passed |
+| `thread-news-followup`, repetition two | Same response-contract weakness under model variation. | Same deterministic graph-boundary enforcement. | Original live case remains in the fixed set and the graph test covers the invariant. | Passed |
+| `synthesis-btc-context`, repetition two | The answer avoided a causal claim but omitted the rubric's explicit uncertainty sentence. | When market and news tools both run, append a causal caveat if the answer lacks one. | Graph-routing test combines both tools and asserts the exact caveat. | Passed |
+
+The regression run passed 40 of 40. This closes the three recorded defects for this fixed suite. It does not prove performance on untested prompts or production traffic.
 
 ## Defect found and corrected
 

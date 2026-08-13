@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Literal, Self
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, SystemMessage, ToolMessage
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
@@ -23,6 +23,18 @@ from crypto_agent.state import AgentState, count_tool_calls_since_last_human
 from crypto_agent.tools import CryptoToolSet, build_crypto_tool_set
 
 MAX_TOOL_CALLS_PER_TURN = 6
+CAUSAL_UNCERTAINTY_TERMS = (
+    "cannot confirm",
+    "does not establish",
+    "doesn't establish",
+    "do not establish",
+    "not directly evidenced",
+    "no direct causation",
+    "does not prove",
+    "do not prove",
+    "hypothesis",
+    "speculative",
+)
 
 
 def _tool_call_key(tool_call: dict[str, object]) -> str:
@@ -46,6 +58,72 @@ def _latest_tool_calls_repeat_current_turn(state: AgentState) -> bool:
     return any(_tool_call_key(call) in previous for call in latest.tool_calls)
 
 
+def _current_turn_tool_evidence(
+    messages: Sequence[BaseMessage],
+) -> tuple[list[tuple[str, str]], set[str]]:
+    latest_human = max(
+        (index for index, message in enumerate(messages) if message.type == "human"),
+        default=-1,
+    )
+    call_names: dict[str, str] = {}
+    evidence: list[tuple[str, str]] = []
+    tool_names: set[str] = set()
+    for message in messages[latest_human + 1 :]:
+        if isinstance(message, AIMessage):
+            call_names.update({call["id"]: call["name"] for call in message.tool_calls})
+            continue
+        if not isinstance(message, ToolMessage):
+            continue
+        tool_name = call_names.get(message.tool_call_id)
+        if tool_name:
+            tool_names.add(tool_name)
+        try:
+            payload = json.loads(message.content)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        source = payload.get("source")
+        retrieved_at = payload.get("retrieved_at")
+        if isinstance(source, str) and isinstance(retrieved_at, str):
+            pair = (source, retrieved_at)
+            if pair not in evidence:
+                evidence.append(pair)
+    return evidence, tool_names
+
+
+def _enforce_response_contract(
+    messages: Sequence[BaseMessage],
+    response: AIMessage,
+) -> AIMessage:
+    if response.tool_calls:
+        return response
+    evidence, tool_names = _current_turn_tool_evidence(messages)
+    if not evidence:
+        return response
+
+    content = response.text
+    additions: list[str] = []
+    for source, retrieved_at in evidence:
+        if source.lower() not in content.lower():
+            additions.append(f"Data provider: {source}")
+        if retrieved_at not in content:
+            additions.append(f"Retrieved: {retrieved_at}")
+
+    combines_market_and_news = {
+        "get_crypto_market_data",
+        "search_crypto_news",
+    }.issubset(tool_names)
+    has_causal_caveat = any(term in content.lower() for term in CAUSAL_UNCERTAINTY_TERMS)
+    if combines_market_and_news and not has_causal_caveat:
+        additions.append("The headlines do not establish what caused the price movement.")
+
+    if not additions:
+        return response
+    updated = f"{content.rstrip()}\n\n" + "  \n".join(additions)
+    return response.model_copy(update={"content": updated})
+
+
 def build_agent_graph(
     model: BaseChatModel,
     tools: Sequence[BaseTool],
@@ -61,6 +139,7 @@ def build_agent_graph(
 
     def call_model(state: AgentState) -> dict[str, object]:
         response = bound_model.invoke([SystemMessage(content=SYSTEM_PROMPT), *state["messages"]])
+        response = _enforce_response_contract(state["messages"], response)
         messages = [*state["messages"], response]
         return {
             "messages": [response],

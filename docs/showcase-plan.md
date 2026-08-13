@@ -36,7 +36,7 @@ Best for a friend or interview call. You operate the keys and control API spend.
 
 ### Option 2: Send a 90-second recording
 
-Best default for LinkedIn, a portfolio page, and direct outreach. Show the user question, tool-status lines, answer source and timestamp, follow-up memory, and safety refusal. End on the 92.5% evaluation result.
+Best default for LinkedIn, a portfolio page, and direct outreach. Show the user question, tool-status lines, answer source and timestamp, follow-up memory, and safety refusal. End on the measured regression story: 37 of 40, three classified failures, then 40 of 40 on the unchanged set.
 
 ### Option 3: Public repository
 
@@ -55,13 +55,13 @@ Use the access-code-protected Vercel deployment for a live portfolio walkthrough
 | 35-50 sec | “Which of those two…” follow-up | Bounded visible history preserves the browser conversation. |
 | 50-65 sec | Architecture diagram | Explain browser history versus durable local SQLite threads. |
 | 65-75 sec | Buy-or-sell request | The system gives analysis but no trade direction. |
-| 75-90 sec | Evaluation report | 20 fixed cases, two runs each, 92.5% pass rate, $0.021383 estimated model cost. |
+| 75-90 sec | Evaluation report | 20 fixed cases, two runs each, initial 37/40, regression 40/40, $0.022025 estimated model cost. |
 
 ## Public positioning
 
 Use this line:
 
-> I built a read-only crypto research agent that selects live market and news tools, preserves isolated conversation threads, and ships with a repeated 20-case evaluation baseline. It scored 92.5% across 40 live runs at an estimated OpenAI cost of $0.021383.
+> I built a read-only crypto research agent that selects live market and news tools, preserves isolated conversation threads, and ships with a repeated 20-case evaluation set. Its first run scored 37 of 40. I classified the three misses, added deterministic response-contract enforcement and regression tests, then passed 40 of 40 on the unchanged set at an estimated OpenAI cost of $0.022025.
 
 Do not call it a trading bot, financial adviser, prediction engine, or production financial product.
 
