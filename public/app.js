@@ -1,5 +1,5 @@
 const STORAGE_KEY = "signal-desk-history-v2";
-const ACCESS_KEY = "signal-desk-access-v1";
+const ACCESS_KEY = "signal-desk-access-v2";
 const TOUR_KEY = "signal-desk-tour-v1";
 const MAX_HISTORY = 12;
 
