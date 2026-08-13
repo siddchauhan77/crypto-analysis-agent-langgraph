@@ -1,6 +1,6 @@
 # Crypto Market Analysis Agent with LangGraph
 
-Status: Active. Phases 1 through 4 completed August 12, 2026
+Status: Technical MVP complete August 13, 2026. Narrated portfolio recording remains a distribution task.
 Project type: Advanced course project plus portfolio case study  
 Timebox: 25 hours  
 Target build window: Five 5-hour sessions  
@@ -555,6 +555,8 @@ Verified result:
 
 ### Phase 7. Documentation and demo, 3 hours
 
+Status: Completed August 13, 2026. The hosted demo, architecture, setup, evaluation evidence, known limits, and recording plan are published. The owner-recorded narrated video remains outside the technical closeout.
+
 - Write setup and usage instructions.
 - Add the architecture diagram.
 - Add three sample conversations with redacted, timestamped outputs.
@@ -582,6 +584,8 @@ Verified result:
 - Sixty offline tests pass. Two provider tests remain opt-in.
 
 ### Phase 8. Final QA and portfolio packaging, 1 hour
+
+Status: Completed August 13, 2026 for the technical MVP. Lint, 61 offline tests, two skipped opt-in live tests, credential-pattern scan, live HTTP checks, desktop workflow, mobile overflow, and browser console checks passed.
 
 - Run lint, unit tests, integration tests, safety tests, and evals.
 - Search the repository for leaked secrets.
@@ -772,7 +776,7 @@ Do not add trade execution, wallet permissions, or personalized recommendations 
 
 ## Single next step
 
-Start Phase 7. Record the 90-second demo, add sample conversations, and package the evidence for public review.
+Record the 90-second narrated demo and send the live project to five FDE or AI Solutions Engineering reviewers. This is distribution work, not another build phase.
 
 ## Devil’s advocate
 

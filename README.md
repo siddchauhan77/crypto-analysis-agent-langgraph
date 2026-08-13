@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-Phases 1 through 6 are complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, and a repeated live evaluation baseline. The offline suite has 55 passing tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 61 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
 
@@ -223,3 +223,11 @@ The graph allows six requested tool calls per user turn and rejects identical re
 ## Build plan
 
 See [BUILD_PLAN.md](BUILD_PLAN.md) for the architecture, 25-hour schedule, tests, evaluation targets, and safety boundaries.
+
+## Closeout evidence
+
+- [After-action report](docs/after-action-report.md)
+- [Interview story bank](docs/interview-story-bank.md)
+- [Architecture](docs/architecture.md)
+- [Evaluation report](docs/evaluation-report.md)
+- [Showcase and recording plan](docs/showcase-plan.md)
