@@ -41,6 +41,7 @@ class FakeGraph:
                             "articles": [
                                 {"title": "Market update", "url": "https://example.com/news"}
                             ],
+                            "api_key": "provider-secret",
                         }
                     ),
                     tool_call_id="call-1",
@@ -197,6 +198,100 @@ def test_chat_requires_configured_demo_code(monkeypatch) -> None:
         json={"message": "Compare BTC and ETH."},
     )
     assert allowed.status_code == 200
+
+
+def test_admin_chat_is_disabled_without_a_separate_admin_code(monkeypatch) -> None:
+    monkeypatch.delenv("ADMIN_ACCESS_CODE", raising=False)
+    response = TestClient(web.app).post(
+        "/api/admin/chat",
+        headers={"X-Admin-Access-Code": "private-admin"},
+        json={"message": "Show Bitcoin news."},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Admin trace is not configured."
+
+
+def test_admin_chat_rejects_the_wrong_admin_role_code(monkeypatch) -> None:
+    monkeypatch.setenv("ADMIN_ACCESS_CODE", "private-admin")
+    response = TestClient(web.app).post(
+        "/api/admin/chat",
+        headers={"X-Admin-Access-Code": "wrong-code"},
+        json={"message": "Show Bitcoin news."},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Admin access required."
+
+
+def test_admin_session_verifies_role_without_running_the_agent(monkeypatch) -> None:
+    monkeypatch.setenv("ADMIN_ACCESS_CODE", "private-admin")
+    response = TestClient(web.app).post(
+        "/api/admin/session",
+        headers={"X-Admin-Access-Code": "private-admin"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "role": "admin",
+        "capabilities": ["redacted_execution_trace"],
+    }
+
+
+def test_admin_chat_returns_redacted_observable_execution_trace(monkeypatch) -> None:
+    fake_graph = FakeGraph()
+    monkeypatch.setattr(web, "build_crypto_agent", lambda: FakeAgent(fake_graph))
+    monkeypatch.setenv("ADMIN_ACCESS_CODE", "private-admin")
+
+    response = TestClient(web.app).post(
+        "/api/admin/chat",
+        headers={"X-Admin-Access-Code": "private-admin"},
+        json={
+            "message": "Show Bitcoin news.",
+            "history": [{"role": "assistant", "content": "Earlier answer."}],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["role"] == "admin"
+    assert payload["trace_notice"] == (
+        "Observable execution metadata only. No hidden chain-of-thought is exposed."
+    )
+    assert payload["safeguards"] == [
+        "Read-only tools",
+        "Six tool calls per turn",
+        "Duplicate calls rejected",
+        "Secrets redacted",
+        "No-store response",
+    ]
+    assert [step["stage"] for step in payload["trace"]] == [
+        "request",
+        "model",
+        "tool",
+        "response",
+    ]
+    assert payload["trace"][0]["input"] == {
+        "message": "Show Bitcoin news.",
+        "history_messages": 1,
+        "message_character_limit": 1200,
+        "history_message_limit": 12,
+    }
+    assert payload["trace"][1]["output"] == {
+        "tool_name": "search_crypto_news",
+        "arguments": {"query": "bitcoin"},
+    }
+    assert payload["trace"][2]["output"]["source"] == "NewsAPI"
+    assert payload["trace"][2]["output"]["api_key"] == "[REDACTED]"
+    assert payload["trace"][3]["output"] == {
+        "answer": "Grounded answer from NewsAPI.",
+        "sources": ["NewsAPI"],
+        "retrieved_at": ["2026-08-12T10:00:00Z"],
+    }
+    serialized = json.dumps(payload)
+    assert "provider-secret" not in serialized
+    assert "private-admin" not in serialized
+    assert payload["duration_ms"] >= 0
 
 
 def test_chat_rejects_oversized_prompt() -> None:

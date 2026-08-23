@@ -81,6 +81,26 @@ class ChatResponse(WebModel):
     chart: PriceChart | None = None
 
 
+class TraceStep(WebModel):
+    """One redacted, observable step from the current graph execution."""
+
+    sequence: int
+    stage: Literal["request", "model", "tool", "response"]
+    label: str
+    input: dict[str, object]
+    output: dict[str, object]
+
+
+class AdminChatResponse(ChatResponse):
+    """Standard chat result plus an admin-only observable execution trace."""
+
+    role: Literal["admin"] = "admin"
+    duration_ms: int = Field(ge=0)
+    trace_notice: str
+    safeguards: list[str]
+    trace: list[TraceStep]
+
+
 _request_times: dict[str, deque[float]] = defaultdict(deque)
 _rate_lock = threading.Lock()
 
@@ -144,6 +164,21 @@ def _require_demo_access(access_code: str | None) -> None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Enter the demo access code to use the live agent.",
+        )
+
+
+def _require_admin_access(access_code: str | None) -> None:
+    """Require a separately configured admin code for trace access."""
+    expected = os.getenv("ADMIN_ACCESS_CODE", "").strip()
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Admin trace is not configured.",
+        )
+    if not secrets.compare_digest(access_code or "", expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin access required.",
         )
 
 
@@ -240,26 +275,9 @@ def _tool_metadata(
     return tools, sources, timestamps, citations, chart
 
 
-@app.get("/api/health")
-def health() -> dict[str, object]:
-    """Return non-sensitive deployment status."""
-    return {
-        "status": "ok",
-        "mode": "read-only",
-        "access_code_required": bool(os.getenv("DEMO_ACCESS_CODE", "").strip()),
-    }
-
-
-@app.post("/api/chat", response_model=ChatResponse)
-def chat(
-    payload: ChatRequest,
-    request: Request,
-    x_demo_access_code: Annotated[str | None, Header()] = None,
-) -> ChatResponse:
-    """Run one stateless, history-aware turn through the existing LangGraph agent."""
-    _require_demo_access(x_demo_access_code)
-    _enforce_rate_limit(request)
-
+def _invoke_agent(payload: ChatRequest) -> tuple[list[object], AIMessage, int]:
+    """Run one bounded graph turn and return observable messages plus duration."""
+    started = time.perf_counter()
     try:
         with build_crypto_agent() as agent:
             result = agent.graph.invoke({"messages": _langchain_messages(payload)})
@@ -271,6 +289,7 @@ def chat(
             detail="The live analysis request failed. Try again shortly.",
         ) from None
 
+    duration_ms = max(0, round((time.perf_counter() - started) * 1_000))
     messages = list(result.get("messages", []))
     final = next(
         (
@@ -285,7 +304,10 @@ def chat(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The agent returned no final answer.",
         )
+    return messages, final, duration_ms
 
+
+def _chat_response(messages: list[object], final: AIMessage) -> ChatResponse:
     tools, sources, timestamps, citations, chart = _tool_metadata(messages)
     return ChatResponse(
         request_id=uuid4().hex[:12],
@@ -295,4 +317,169 @@ def chat(
         retrieved_at=timestamps,
         citations=citations,
         chart=chart,
+    )
+
+
+def _redact_trace_value(value: object) -> object:
+    """Recursively remove credential-shaped fields and bound trace size."""
+    if isinstance(value, dict):
+        redacted: dict[str, object] = {}
+        for raw_key, item in value.items():
+            key = str(raw_key)
+            normalized = key.lower().replace("-", "_")
+            if any(
+                marker in normalized
+                for marker in (
+                    "api_key",
+                    "access_code",
+                    "authorization",
+                    "password",
+                    "secret",
+                    "token",
+                )
+            ):
+                redacted[key] = "[REDACTED]"
+            else:
+                redacted[key] = _redact_trace_value(item)
+        return redacted
+    if isinstance(value, list):
+        return [_redact_trace_value(item) for item in value[:10]]
+    if isinstance(value, tuple):
+        return [_redact_trace_value(item) for item in value[:10]]
+    if isinstance(value, str):
+        return value if len(value) <= 2_000 else f"{value[:2_000]}…[TRUNCATED]"
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    return str(value)
+
+
+def _execution_trace(
+    payload: ChatRequest,
+    messages: list[object],
+    final: AIMessage,
+    response: ChatResponse,
+) -> list[TraceStep]:
+    """Build a redacted current-turn trace without model chain-of-thought."""
+    steps = [
+        TraceStep(
+            sequence=1,
+            stage="request",
+            label="Request accepted",
+            input={
+                "message": payload.message.strip(),
+                "history_messages": len(payload.history),
+                "message_character_limit": MAX_MESSAGE_CHARACTERS,
+                "history_message_limit": MAX_HISTORY_MESSAGES,
+            },
+            output={"accepted": True},
+        )
+    ]
+    call_names: dict[str, str] = {}
+    request_message_count = len(payload.history) + 1
+    for message in messages[request_message_count:]:
+        if isinstance(message, AIMessage) and message.tool_calls:
+            for call in message.tool_calls:
+                call_id = str(call.get("id", ""))
+                tool_name = str(call.get("name", "unknown"))
+                call_names[call_id] = tool_name
+                steps.append(
+                    TraceStep(
+                        sequence=len(steps) + 1,
+                        stage="model",
+                        label=f"Tool selected: {tool_name}",
+                        input={"visible_message_count": request_message_count},
+                        output={
+                            "tool_name": tool_name,
+                            "arguments": _redact_trace_value(call.get("args", {})),
+                        },
+                    )
+                )
+            continue
+        if isinstance(message, ToolMessage):
+            try:
+                parsed = json.loads(message.content) if isinstance(message.content, str) else {}
+            except json.JSONDecodeError:
+                parsed = {"status": "unparseable_tool_output"}
+            tool_name = call_names.get(message.tool_call_id, "unknown")
+            steps.append(
+                TraceStep(
+                    sequence=len(steps) + 1,
+                    stage="tool",
+                    label=f"Tool returned: {tool_name}",
+                    input={"tool_name": tool_name, "tool_call_id": message.tool_call_id},
+                    output=_redact_trace_value(parsed),
+                )
+            )
+
+    steps.append(
+        TraceStep(
+            sequence=len(steps) + 1,
+            stage="response",
+            label="Grounded answer returned",
+            input={"tool_count": len(response.tools_used)},
+            output={
+                "answer": final.text,
+                "sources": response.sources,
+                "retrieved_at": response.retrieved_at,
+            },
+        )
+    )
+    return steps
+
+
+@app.get("/api/health")
+def health() -> dict[str, object]:
+    """Return non-sensitive deployment status."""
+    return {
+        "status": "ok",
+        "mode": "read-only",
+        "access_code_required": bool(os.getenv("DEMO_ACCESS_CODE", "").strip()),
+    }
+
+
+@app.post("/api/admin/session")
+def admin_session(
+    x_admin_access_code: Annotated[str | None, Header()] = None,
+) -> dict[str, object]:
+    """Verify the admin role without running the model or provider tools."""
+    _require_admin_access(x_admin_access_code)
+    return {"role": "admin", "capabilities": ["redacted_execution_trace"]}
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+def chat(
+    payload: ChatRequest,
+    request: Request,
+    x_demo_access_code: Annotated[str | None, Header()] = None,
+) -> ChatResponse:
+    """Run one stateless, history-aware turn through the existing LangGraph agent."""
+    _require_demo_access(x_demo_access_code)
+    _enforce_rate_limit(request)
+    messages, final, _ = _invoke_agent(payload)
+    return _chat_response(messages, final)
+
+
+@app.post("/api/admin/chat", response_model=AdminChatResponse)
+def admin_chat(
+    payload: ChatRequest,
+    request: Request,
+    x_admin_access_code: Annotated[str | None, Header()] = None,
+) -> AdminChatResponse:
+    """Run one turn and return a redacted trace to an authorized admin."""
+    _require_admin_access(x_admin_access_code)
+    _enforce_rate_limit(request)
+    messages, final, duration_ms = _invoke_agent(payload)
+    response = _chat_response(messages, final)
+    return AdminChatResponse(
+        **response.model_dump(),
+        duration_ms=duration_ms,
+        trace_notice="Observable execution metadata only. No hidden chain-of-thought is exposed.",
+        safeguards=[
+            "Read-only tools",
+            "Six tool calls per turn",
+            "Duplicate calls rejected",
+            "Secrets redacted",
+            "No-store response",
+        ],
+        trace=_execution_trace(payload, messages, final, response),
     )

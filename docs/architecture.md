@@ -1,6 +1,6 @@
 # Current Architecture
 
-Status: Phase 7 implemented August 12, 2026
+Status: Phase 7 implemented August 12, 2026. Admin trace upgrade added August 23, 2026.
 
 ## Interface status
 
@@ -87,6 +87,36 @@ Current public controls:
 - A shared demo access code stored in browser session storage.
 - Bounded inputs, bounded history, security headers, no-store caching, and best-effort throttling.
 - Responsive browser verification at desktop and 375-pixel mobile width.
+
+## Admin observability path
+
+The hidden `?admin=1` route adds an authenticated inspector for one current turn. It uses a separate `ADMIN_ACCESS_CODE`. The normal demo code does not grant admin access.
+
+```mermaid
+flowchart LR
+    U["Admin question"] --> RB["Role boundary<br>separate admin code"]
+    RB --> A["FastAPI admin endpoint"]
+    A --> G["Existing LangGraph agent"]
+    G --> M["Model tool selection"]
+    M --> T["Typed read-only tool"]
+    T --> P["External provider"]
+    P --> T
+    T --> G
+    G --> R["Grounded answer"]
+    G --> X["Trace builder"]
+    X --> D["Recursive secret redaction<br>and size bounds"]
+    D --> UI["Admin execution console"]
+    R --> UI
+```
+
+The console exposes request bounds, selected tool names and arguments, normalized tool output, sources, retrieval times, duration, and the final answer. It excludes model chain-of-thought and system prompts. Trace responses use the same no-store policy as public responses and are not retained server-side.
+
+Admin limitations:
+
+- A shared secret is role separation for a portfolio demo, not identity-based authorization.
+- Traces are request-local and disappear after the browser session.
+- The in-memory request limiter is per serverless instance.
+- Production use needs centralized tracing, identity, retention rules, and incident review.
 
 Remaining production upgrades:
 

@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 62 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 66 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
 
@@ -108,6 +108,8 @@ Expected private file:
 OPENAI_API_KEY=your_openai_key
 FREECRYPTO_API_KEY=your_freecrypto_key
 NEWS_API_KEY=your_newsapi_key
+DEMO_ACCESS_CODE=your_demo_code
+ADMIN_ACCESS_CODE=your_separate_admin_code
 ```
 
 ## Development setup
@@ -183,6 +185,17 @@ Open `http://localhost:3000`. The browser sends at most 12 visible history messa
 
 The web endpoint also applies input limits, security headers, no-store caching, a six-tool-call graph limit, and a best-effort per-instance request limit. Vercel instances do not share the in-memory request counter, so account-level API spending limits remain required.
 
+### Admin execution trace
+
+The hidden admin route shows the current turn as redacted request, model-tool selection, tool output, and final-response events. It does not expose chain-of-thought, system prompts, or credentials.
+
+1. Set a separate `ADMIN_ACCESS_CODE` in the local or Vercel environment.
+2. Open the browser demo with `?admin=1` appended to the URL.
+3. Select `Execution trace` and verify the admin code.
+4. Return to `Research chat`, submit a question, then reopen the trace tab.
+
+The public chat does not display or call this route. Admin requests use `/api/admin/chat`; standard requests continue through `/api/chat`. The server recursively redacts credential-shaped fields and truncates oversized trace values. This is a portfolio observability surface, not a replacement for production tracing, identity management, or audit-log retention.
+
 ## Evaluation baseline
 
 Phase 6 uses a fixed 20-case dataset covering market data, symbol checks, news, multi-tool synthesis, threaded follow-ups, and safety. Every case runs twice against fresh threads.
@@ -231,3 +244,4 @@ See [BUILD_PLAN.md](BUILD_PLAN.md) for the architecture, 25-hour schedule, tests
 - [Architecture](docs/architecture.md)
 - [Evaluation report](docs/evaluation-report.md)
 - [Showcase and recording plan](docs/showcase-plan.md)
+- [FDE readiness audit](docs/fde-readiness-audit.md)

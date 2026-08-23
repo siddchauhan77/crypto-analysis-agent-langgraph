@@ -110,6 +110,26 @@ Evidence: The live homepage and health endpoint return HTTP 200. A browser run p
 
 One-line proof: “I moved the same tested agent from a local CLI to a guarded browser demo and verified the live workflow.”
 
+## Story 6: Turning an opaque agent run into inspectable evidence
+
+Use for: “How do you debug agents in front of a customer?” “How do you build trust in AI behavior?”
+
+### CASE
+
+Context: The public demo showed a sourced answer, but a technical reviewer could not inspect the request-to-tool path without reading code or running the CLI debugger.
+
+Action: I added a hidden admin route with a separate role code. It records current-turn request bounds, model tool selection, validated arguments, normalized provider output, duration, sources, and the final response. I added recursive credential redaction, response size bounds, no-store headers, and explicit language excluding hidden chain-of-thought.
+
+Stakes: Exposing raw prompts or credentials would create a security problem. Showing a fake static diagram would not prove the live route executed.
+
+Evidence: Four new API tests cover disabled configuration, rejected credentials, role verification, trace structure, and secret redaction. The full offline suite now passes 66 tests, with two live provider tests kept opt-in.
+
+### 60-second version
+
+“The demo returned good answers, but the execution path stayed opaque to a reviewer. I added a separate admin role that runs the same LangGraph workflow and returns redacted current-turn events: request bounds, tool selection, validated arguments, normalized provider output, timing, sources, and the final answer. I did not expose chain-of-thought or system prompts. I tested the authorization boundary and planted a fake API key in a tool response to prove the trace redactor removes it. The upgrade changed the demo from ‘trust the answer’ to ‘inspect the bounded execution.’”
+
+One-line proof: “I added role-separated, secret-redacted execution evidence to the same live agent path.”
+
 ## Tell me about yourself bridge
 
 “I work at the point where a user workflow becomes a tested AI system. In this project, I took a broad crypto-agent brief, narrowed it to read-only research, integrated two live data providers through three tools, and built an explicit LangGraph loop with memory, cost limits, and failure handling. I created a 20-case evaluation set, ran 40 live trials, and deployed the same agent through a browser interface. The first run passed 37 of 40. I classified the misses, enforced the deterministic contract at the graph boundary, added regressions, and passed 40 of 40 on the unchanged set. That combination of workflow translation, implementation, evaluation, and user-facing delivery is why I am targeting FDE and AI Solutions Engineering roles.”

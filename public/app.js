@@ -1,7 +1,9 @@
 const STORAGE_KEY = "signal-desk-history-v2";
 const ACCESS_KEY = "signal-desk-access-v2";
+const ADMIN_ACCESS_KEY = "signal-desk-admin-access-v1";
 const TOUR_KEY = "signal-desk-tour-v1";
 const MAX_HISTORY = 12;
+const adminRouteEnabled = new URLSearchParams(window.location.search).get("admin") === "1";
 
 const messagesNode = document.querySelector("#messages");
 const welcomeNode = document.querySelector("#welcome");
@@ -21,10 +23,29 @@ const tourTitle = document.querySelector("#tour-title");
 const tourCopy = document.querySelector("#tour-copy");
 const tourExample = document.querySelector("#tour-example");
 const tourProgress = [...document.querySelectorAll(".tour-progress span")];
+const chatTab = document.querySelector("#chat-tab");
+const adminTab = document.querySelector("#admin-tab");
+const adminRole = document.querySelector("#admin-role");
+const adminConsole = document.querySelector("#admin-console");
+const adminAuthCard = document.querySelector("#admin-auth-card");
+const adminTraceContent = document.querySelector("#admin-trace-content");
+const adminAccessInput = document.querySelector("#admin-access-code");
+const verifyAdminButton = document.querySelector("#verify-admin");
+const adminAuthStatus = document.querySelector("#admin-auth-status");
+const traceCount = document.querySelector("#trace-count");
+const traceRequest = document.querySelector("#trace-request");
+const traceDuration = document.querySelector("#trace-duration");
+const traceStepsCount = document.querySelector("#trace-steps-count");
+const traceToolsCount = document.querySelector("#trace-tools-count");
+const safeguardStrip = document.querySelector("#safeguard-strip");
+const traceNotice = document.querySelector("#trace-notice");
+const traceStepsNode = document.querySelector("#trace-steps");
 
 let history = readHistory();
 let pendingMessage = "";
 let tourStep = 0;
+let adminAuthorized = false;
+let activeView = "chat";
 
 const tourSteps = [
   {
@@ -296,6 +317,103 @@ function showError(message) {
   addMessage("agent", message);
 }
 
+function showView(view) {
+  activeView = view === "admin" ? "admin" : "chat";
+  const showAdmin = activeView === "admin";
+  messagesNode.hidden = showAdmin;
+  form.hidden = showAdmin;
+  accessPanel.hidden = showAdmin || adminAuthorized;
+  adminConsole.hidden = !showAdmin;
+  chatTab.classList.toggle("active", !showAdmin);
+  chatTab.setAttribute("aria-pressed", String(!showAdmin));
+  adminTab.classList.toggle("active", showAdmin);
+  adminTab.setAttribute("aria-pressed", String(showAdmin));
+}
+
+function appendJsonBlock(parent, label, value) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "trace-json";
+  const title = document.createElement("span");
+  title.textContent = label;
+  const pre = document.createElement("pre");
+  pre.textContent = JSON.stringify(value, null, 2);
+  wrapper.append(title, pre);
+  parent.append(wrapper);
+}
+
+function renderAdminTrace(payload) {
+  if (!Array.isArray(payload.trace)) return;
+  traceStepsNode.replaceChildren();
+  payload.trace.forEach((step) => {
+    const article = document.createElement("article");
+    article.className = `trace-step trace-${step.stage}`;
+    const header = document.createElement("header");
+    const sequence = document.createElement("span");
+    sequence.textContent = String(step.sequence).padStart(2, "0");
+    const title = document.createElement("strong");
+    title.textContent = step.label;
+    const stage = document.createElement("small");
+    stage.textContent = step.stage;
+    header.append(sequence, title, stage);
+    article.append(header);
+    appendJsonBlock(article, "INPUT", step.input);
+    appendJsonBlock(article, "OUTPUT", step.output);
+    traceStepsNode.append(article);
+  });
+
+  safeguardStrip.replaceChildren();
+  (payload.safeguards || []).forEach((value) => {
+    const tag = document.createElement("span");
+    tag.textContent = value;
+    safeguardStrip.append(tag);
+  });
+  traceRequest.textContent = payload.request_id || "Unknown";
+  traceDuration.textContent = `${payload.duration_ms ?? 0} ms`;
+  traceStepsCount.textContent = String(payload.trace.length);
+  traceToolsCount.textContent = String((payload.tools_used || []).length);
+  traceCount.textContent = String(payload.trace.length);
+  traceNotice.textContent = payload.trace_notice || "Redacted observable execution metadata.";
+}
+
+function setAdminAuthorized(authorized) {
+  adminAuthorized = authorized;
+  adminAuthCard.hidden = authorized;
+  adminTraceContent.hidden = !authorized;
+  adminRole.hidden = !authorized;
+}
+
+async function verifyAdminRole() {
+  const code = adminAccessInput.value.trim() || sessionStorage.getItem(ADMIN_ACCESS_KEY) || "";
+  if (!code) {
+    adminAuthStatus.textContent = "Enter the separate admin code.";
+    return;
+  }
+  verifyAdminButton.disabled = true;
+  adminAuthStatus.textContent = "Verifying role...";
+  try {
+    const response = await fetch("/api/admin/session", {
+      method: "POST",
+      headers: { "X-Admin-Access-Code": code },
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.role !== "admin") {
+      throw new Error(payload.detail || "Admin role verification failed.");
+    }
+    sessionStorage.setItem(ADMIN_ACCESS_KEY, code);
+    adminAccessInput.value = "";
+    adminAuthStatus.textContent = "";
+    setAdminAuthorized(true);
+    showView("chat");
+    fillComposer("Compare BTC and ETH using current price and 24-hour change.");
+  } catch (error) {
+    sessionStorage.removeItem(ADMIN_ACCESS_KEY);
+    setAdminAuthorized(false);
+    adminAuthStatus.textContent = error instanceof Error ? error.message : "Access denied.";
+  } finally {
+    verifyAdminButton.disabled = false;
+  }
+}
+
 function setBusy(busy) {
   sendButton.disabled = busy;
   question.disabled = busy;
@@ -319,10 +437,15 @@ async function submitMessage(rawMessage, displayUser = true) {
 
   try {
     const headers = { "Content-Type": "application/json" };
-    const accessCode = sessionStorage.getItem(ACCESS_KEY) || "";
-    if (accessCode) headers["X-Demo-Access-Code"] = accessCode;
+    const useAdminTrace = adminRouteEnabled && adminAuthorized;
+    if (useAdminTrace) {
+      headers["X-Admin-Access-Code"] = sessionStorage.getItem(ADMIN_ACCESS_KEY) || "";
+    } else {
+      const accessCode = sessionStorage.getItem(ACCESS_KEY) || "";
+      if (accessCode) headers["X-Demo-Access-Code"] = accessCode;
+    }
 
-    const response = await fetch("/api/chat", {
+    const response = await fetch(useAdminTrace ? "/api/admin/chat" : "/api/chat", {
       method: "POST",
       headers,
       body: JSON.stringify({ message, history: context }),
@@ -331,8 +454,16 @@ async function submitMessage(rawMessage, displayUser = true) {
 
     if (response.status === 401) {
       removeThinking();
-      accessPanel.classList.remove("hidden");
-      accessInput.focus();
+      if (useAdminTrace) {
+        sessionStorage.removeItem(ADMIN_ACCESS_KEY);
+        setAdminAuthorized(false);
+        adminAuthStatus.textContent = payload.detail || "Admin access required.";
+        showView("admin");
+        adminAccessInput.focus();
+      } else {
+        accessPanel.classList.remove("hidden");
+        accessInput.focus();
+      }
       return;
     }
     if (!response.ok) {
@@ -341,6 +472,7 @@ async function submitMessage(rawMessage, displayUser = true) {
 
     removeThinking();
     addMessage("agent", payload.answer, payload);
+    if (useAdminTrace) renderAdminTrace(payload);
     history.push(
       { role: "user", content: message },
       {
@@ -422,6 +554,12 @@ document.querySelectorAll("[data-prompt]").forEach((button) => {
 });
 
 openTourButton.addEventListener("click", openTour);
+chatTab.addEventListener("click", () => showView("chat"));
+adminTab.addEventListener("click", () => showView("admin"));
+verifyAdminButton.addEventListener("click", verifyAdminRole);
+adminAccessInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") verifyAdminRole();
+});
 closeTourButton.addEventListener("click", closeTour);
 tourNextButton.addEventListener("click", () => {
   if (tourStep < tourSteps.length - 1) {
@@ -458,6 +596,13 @@ accessInput.addEventListener("keydown", (event) => {
 history.forEach((item) =>
   addMessage(item.role === "user" ? "user" : "agent", item.content, item.metadata || {}),
 );
+if (adminRouteEnabled) {
+  adminTab.hidden = false;
+  const storedAdminCode = sessionStorage.getItem(ADMIN_ACCESS_KEY);
+  if (storedAdminCode) {
+    verifyAdminRole();
+  }
+}
 if (!sessionStorage.getItem(ACCESS_KEY)) accessPanel.classList.remove("hidden");
 if (!localStorage.getItem(TOUR_KEY) && history.length === 0) {
   window.setTimeout(openTour, 350);

@@ -16,6 +16,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 html {
   background: var(--base);
   min-width: 320px;
@@ -370,6 +372,45 @@ footer {
 }
 
 .text-button:hover { color: var(--acid); }
+
+.chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-tab {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  color: var(--faint);
+  background: transparent;
+  font: 600 0.64rem/1 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+}
+
+.mode-tab:hover,
+.mode-tab.active {
+  border-color: #267b2e;
+  color: var(--acid);
+  background: rgba(57, 255, 20, 0.05);
+}
+
+.mode-tab span {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  place-items: center;
+  border: 1px solid #267b2e;
+  font-size: 0.55rem;
+}
+
+.admin-role {
+  color: #010502;
+  border-color: var(--ember);
+  background: var(--ember);
+}
 
 .messages {
   overflow-y: auto;
@@ -824,6 +865,275 @@ footer {
   font-weight: 800;
 }
 
+.admin-console {
+  grid-row: 2 / -1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(22px, 4vw, 42px);
+  background:
+    linear-gradient(rgba(57, 255, 20, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.025) 1px, transparent 1px),
+    #010502;
+  background-size: 24px 24px;
+}
+
+.admin-auth-card {
+  max-width: 620px;
+  margin: min(12vh, 90px) auto;
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid #267b2e;
+  background: rgba(2, 10, 4, 0.96);
+  box-shadow: var(--shadow);
+}
+
+.admin-auth-card h2,
+.admin-console-header h2 {
+  margin: 12px 0;
+  color: #d7ffd2;
+  font: 400 clamp(2.5rem, 5vw, 4.2rem)/0.9 "VT323", monospace;
+  text-transform: uppercase;
+}
+
+.admin-auth-card > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.admin-auth-card label {
+  display: block;
+  margin: 22px 0 8px;
+  color: var(--acid);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-auth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.admin-auth-row input,
+.admin-auth-row button {
+  min-height: 44px;
+  border: 1px solid #267b2e;
+}
+
+.admin-auth-row input {
+  min-width: 0;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #010502;
+}
+
+.admin-auth-row button {
+  padding: 0 16px;
+  color: #010502;
+  background: var(--acid);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-auth-status {
+  min-height: 1.3em;
+  margin: 10px 0 0 !important;
+  color: var(--ember) !important;
+}
+
+.admin-console-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.admin-console-header h2 { margin-bottom: 0; }
+
+.admin-badge {
+  padding: 8px 10px;
+  border: 1px solid var(--ember);
+  color: var(--ember);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.flow-map {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: #17421c;
+}
+
+.flow-map div {
+  position: relative;
+  min-height: 128px;
+  padding: 15px;
+  background: #020a04;
+}
+
+.flow-map div:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  z-index: 2;
+  color: var(--acid);
+  content: ">";
+  transform: translateY(-50%);
+}
+
+.flow-map span,
+.flow-map strong,
+.flow-map small {
+  display: block;
+}
+
+.flow-map span {
+  margin-bottom: 20px;
+  color: var(--acid);
+  font-size: 0.62rem;
+}
+
+.flow-map strong {
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.flow-map small {
+  color: var(--muted);
+  font-size: 0.6rem;
+  line-height: 1.45;
+}
+
+.trace-summary {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.trace-summary div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: rgba(2, 10, 4, 0.92);
+}
+
+.trace-summary small {
+  color: var(--faint);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+
+.trace-summary strong {
+  overflow: hidden;
+  color: var(--acid);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+}
+
+.safeguard-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.safeguard-strip span {
+  padding: 7px 9px;
+  border: 1px solid #267b2e;
+  color: var(--mint);
+  background: #020a04;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+
+.trace-notice {
+  margin: 16px 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.trace-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trace-step {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) minmax(0, 1fr);
+  border: 1px solid var(--line);
+  background: rgba(2, 10, 4, 0.94);
+}
+
+.trace-step > header {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-content: start;
+  gap: 8px;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.trace-step > header span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #267b2e;
+  color: var(--acid);
+  font-size: 0.62rem;
+}
+
+.trace-step > header strong {
+  color: var(--ink);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.trace-step > header small {
+  grid-column: 2;
+  color: var(--faint);
+  font-size: 0.56rem;
+  text-transform: uppercase;
+}
+
+.trace-json {
+  min-width: 0;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.trace-json:last-child { border-right: 0; }
+
+.trace-json > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--faint);
+  font-size: 0.56rem;
+}
+
+.trace-json pre {
+  max-height: 260px;
+  margin: 0;
+  overflow: auto;
+  color: var(--muted);
+  font: 500 0.62rem/1.5 "IBM Plex Mono", monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .composer {
   margin: 14px;
   padding: 14px;
@@ -1096,6 +1406,14 @@ footer {
     max-height: none;
     min-height: 760px;
   }
+
+  .flow-map { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flow-map div:not(:last-child)::after { display: none; }
+  .trace-step { grid-template-columns: 170px minmax(0, 1fr); }
+  .trace-json:last-child {
+    grid-column: 2;
+    border-top: 1px solid var(--line);
+  }
 }
 
 @media (max-width: 680px) {
@@ -1111,6 +1429,8 @@ footer {
     min-height: 34px;
     padding-inline: 10px;
   }
+
+  .admin-role { display: none; }
 
   .workspace {
     gap: 26px;
@@ -1172,6 +1492,30 @@ footer {
   .send-button { width: 100%; min-height: 48px; }
 
   .tour-dialog { padding: 22px; }
+
+  .chat-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding-block: 13px;
+  }
+
+  .chat-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .chat-actions .text-button { margin-left: auto; }
+  .admin-console { padding: 18px 14px; }
+  .admin-auth-row { grid-template-columns: 1fr; }
+  .admin-console-header { flex-direction: column; }
+  .flow-map { grid-template-columns: 1fr; }
+  .flow-map div { min-height: 104px; }
+  .trace-summary { grid-template-columns: repeat(2, 1fr); }
+  .trace-step { grid-template-columns: 1fr; }
+  .trace-step > header { border-right: 0; border-bottom: 1px solid var(--line); }
+  .trace-json { border-right: 0; border-bottom: 1px solid var(--line); }
+  .trace-json:last-child { grid-column: auto; border-bottom: 0; }
 
   footer {
     min-height: 74px;

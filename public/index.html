@@ -16,7 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=VT323&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260813-chart2" />
+    <link rel="stylesheet" href="/styles.css?v=20260823-admin1" />
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -30,6 +30,7 @@
       <div class="header-status" aria-label="Application status">
         <span class="status-pill"><i></i>Uplink active</span>
         <span class="status-pill muted">Read only</span>
+        <span class="status-pill admin-role" id="admin-role" hidden>Admin role</span>
         <button class="tour-button" id="open-tour" type="button">Operator guide</button>
       </div>
     </header>
@@ -54,7 +55,7 @@
           <div class="metric-grid">
             <div><span>4.835s</span><small>Median</small></div>
             <div><span>3</span><small>Tools</small></div>
-            <div><span>62</span><small>Tests</small></div>
+            <div><span>66</span><small>Tests</small></div>
           </div>
         </section>
 
@@ -84,7 +85,13 @@
               <span>Prices and headlines from live providers</span>
             </div>
           </div>
-          <button class="text-button" id="new-chat" type="button">New session</button>
+          <div class="chat-actions">
+            <button class="mode-tab active" id="chat-tab" type="button" aria-pressed="true">Chat</button>
+            <button class="mode-tab" id="admin-tab" type="button" aria-pressed="false" hidden>
+              Trace console <span id="trace-count">0</span>
+            </button>
+            <button class="text-button" id="new-chat" type="button">New session</button>
+          </div>
         </div>
 
         <div class="messages" id="messages" aria-live="polite">
@@ -123,6 +130,54 @@
             </div>
           </section>
         </div>
+
+        <section class="admin-console" id="admin-console" aria-label="Admin execution trace" hidden>
+          <div class="admin-auth-card" id="admin-auth-card">
+            <p class="eyebrow">Restricted system view</p>
+            <h2>Admin trace console</h2>
+            <p>
+              Verify the admin role to inspect redacted request, model, tool, and response events.
+              This view does not expose hidden chain-of-thought or credentials.
+            </p>
+            <label for="admin-access-code">Admin access code</label>
+            <div class="admin-auth-row">
+              <input id="admin-access-code" type="password" autocomplete="current-password" placeholder="Admin code" />
+              <button id="verify-admin" type="button">Verify role</button>
+            </div>
+            <p class="admin-auth-status" id="admin-auth-status" role="status"></p>
+          </div>
+
+          <div class="admin-trace-content" id="admin-trace-content" hidden>
+            <header class="admin-console-header">
+              <div>
+                <p class="eyebrow">Observable execution</p>
+                <h2>Input → decision → tool → output</h2>
+              </div>
+              <span class="admin-badge">Redacted</span>
+            </header>
+
+            <div class="flow-map" aria-label="High-level request flow">
+              <div><span>01</span><strong>User input</strong><small>Bounded message and visible history</small></div>
+              <div><span>02</span><strong>Model node</strong><small>Selects a typed read-only tool</small></div>
+              <div><span>03</span><strong>Tool call</strong><small>Validated arguments and provider request</small></div>
+              <div><span>04</span><strong>Tool output</strong><small>Normalized source and retrieval time</small></div>
+              <div><span>05</span><strong>Final answer</strong><small>Grounded response contract applied</small></div>
+            </div>
+
+            <div class="trace-summary" aria-label="Latest trace summary">
+              <div><small>Request</small><strong id="trace-request">No run yet</strong></div>
+              <div><small>Duration</small><strong id="trace-duration">—</strong></div>
+              <div><small>Steps</small><strong id="trace-steps-count">0</strong></div>
+              <div><small>Tools</small><strong id="trace-tools-count">0</strong></div>
+            </div>
+
+            <div class="safeguard-strip" id="safeguard-strip"></div>
+            <p class="trace-notice" id="trace-notice">
+              Run a question in Chat. The authorized trace will appear here.
+            </p>
+            <div class="trace-steps" id="trace-steps"></div>
+          </div>
+        </section>
 
         <div class="access-panel hidden" id="access-panel" role="status">
           <div>
@@ -182,6 +237,6 @@
       <span>Prices: FreeCryptoAPI · News: NewsAPI</span>
     </footer>
 
-    <script src="/app.js?v=20260813-access2" defer></script>
+    <script src="/app.js?v=20260823-admin1" defer></script>
   </body>
 </html>

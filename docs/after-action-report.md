@@ -1,7 +1,7 @@
 # Crypto Market Analysis Agent: After-Action Report
 
 Closeout date: August 13, 2026  
-Release status: Technical MVP complete  
+Release status: Technical MVP complete. FDE observability upgrade added August 23, 2026.
 Risk boundary: Read-only market research. No trading, wallet, exchange, or transaction access.
 
 ## Outcome
@@ -21,8 +21,8 @@ Current claims include a provider and retrieval time. The system separates sourc
 Verified August 13, 2026:
 
 - Ruff lint: passed
-- Test collection: 64
-- Offline tests: 62 passed
+- Test collection: 68
+- Offline tests: 66 passed
 - Opt-in live provider tests: 2 skipped during the offline closeout run
 - Fixed live evaluation after regression upgrade: 40 of 40 runs passed
 - Initial baseline retained as history: 37 of 40 runs passed
@@ -84,7 +84,7 @@ Cost: The product does not serve execution-oriented traders.
 - FreeCryptoAPI's free plan did not provide every planned field. Unsupported market-cap and volume fields were removed instead of inferred.
 - A provider request initially encoded the multi-symbol separator incorrectly. FreeCryptoAPI required a literal `+`, not `%2B`.
 - Vercel does not provide durable SQLite persistence. The browser uses bounded local history instead.
-- The browser initially displayed stale test counts as the suite grew. Closeout now reports 62 passing offline tests.
+- The browser initially displayed stale test counts as the suite grew. Closeout now reports 66 passing offline tests.
 - The project has current-price comparison bars, not historical TradingView-style time-series charts.
 
 ## Known production gaps
@@ -96,6 +96,8 @@ Cost: The product does not serve execution-oriented traders.
 - No analyst feedback capture linked to failed traces
 - No historical price provider or candlestick data
 - No formal user study with working crypto analysts
+
+The August 23 upgrade adds a hidden, separately authenticated admin console for redacted per-request execution metadata. It makes the model-to-tool flow inspectable during an interview. It does not close the production gaps above.
 
 These gaps block claims of production ownership or proven analyst adoption.
 
