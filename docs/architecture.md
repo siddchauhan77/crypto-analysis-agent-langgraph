@@ -90,7 +90,7 @@ Current public controls:
 
 ## Admin observability path
 
-The hidden `?admin=1` route adds an authenticated inspector for one current turn. It uses a separate `ADMIN_ACCESS_CODE`. The normal demo code does not grant admin access.
+The hidden `?admin=1` route adds an authenticated inspector for one current turn. It accepts a separate `ADMIN_ACCESS_CODE` when configured. The portfolio deployment also has a high-entropy bootstrap credential whose SHA-256 verifier is stored in source while the raw value stays outside Git. The environment value takes precedence for rotation. The normal demo code does not grant admin access.
 
 ```mermaid
 flowchart LR

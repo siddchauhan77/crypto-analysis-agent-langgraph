@@ -58,7 +58,7 @@ It also gives a knowledgeable reviewer an interpretation frame:
 
 Controls:
 
-- Separate `ADMIN_ACCESS_CODE`
+- Separate admin credential with environment override and hashed portfolio bootstrap
 - Hidden activation through `?admin=1`
 - Request-local trace only
 - Recursive credential-field redaction

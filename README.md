@@ -6,7 +6,7 @@ The agent does not predict prices, recommend trades, connect to wallets, or exec
 
 ## Current status
 
-The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 66 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 67 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
 
 The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
 
@@ -189,7 +189,7 @@ The web endpoint also applies input limits, security headers, no-store caching, 
 
 The hidden admin route shows the current turn as redacted request, model-tool selection, tool output, and final-response events. An expert interpretation layer separates the probabilistic model plane, deterministic control plane, and external evidence plane. Each run also reports observed routing, provider and timestamp counts, tool-budget use, and trace scope. It does not expose chain-of-thought, system prompts, or credentials.
 
-1. Set a separate `ADMIN_ACCESS_CODE` in the local or Vercel environment.
+1. Use the bootstrap admin code stored outside Git in `.data/admin-access-code.txt`, or set `ADMIN_ACCESS_CODE` in the local or Vercel environment to rotate it. The environment value takes precedence. Source contains only a SHA-256 verifier for the high-entropy bootstrap code.
 2. Open the browser demo with `?admin=1` appended to the URL.
 3. Select `Execution trace` and verify the admin code.
 4. Return to `Research chat`, submit a question, then reopen the trace tab.

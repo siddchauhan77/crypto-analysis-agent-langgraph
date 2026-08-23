@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import dataclass
+from hashlib import sha256
 from typing import Self
 
 from fastapi.testclient import TestClient
@@ -114,6 +115,7 @@ class FakeAgent:
 def test_health_reports_read_only_mode(monkeypatch) -> None:
     monkeypatch.delenv("DEMO_ACCESS_CODE", raising=False)
     monkeypatch.delenv("ADMIN_ACCESS_CODE", raising=False)
+    monkeypatch.setattr(web, "BOOTSTRAP_ADMIN_CODE_SHA256", "")
     response = TestClient(web.app).get("/api/health")
     assert response.status_code == 200
     assert response.json() == {
@@ -204,6 +206,7 @@ def test_chat_requires_configured_demo_code(monkeypatch) -> None:
 
 def test_admin_chat_is_disabled_without_a_separate_admin_code(monkeypatch) -> None:
     monkeypatch.delenv("ADMIN_ACCESS_CODE", raising=False)
+    monkeypatch.setattr(web, "BOOTSTRAP_ADMIN_CODE_SHA256", "")
     response = TestClient(web.app).post(
         "/api/admin/chat",
         headers={"X-Admin-Access-Code": "private-admin"},
@@ -212,6 +215,23 @@ def test_admin_chat_is_disabled_without_a_separate_admin_code(monkeypatch) -> No
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Admin trace is not configured."
+
+
+def test_admin_session_accepts_the_hashed_bootstrap_code(monkeypatch) -> None:
+    monkeypatch.delenv("ADMIN_ACCESS_CODE", raising=False)
+    monkeypatch.setattr(
+        web,
+        "BOOTSTRAP_ADMIN_CODE_SHA256",
+        sha256(b"private-admin").hexdigest(),
+    )
+
+    response = TestClient(web.app).post(
+        "/api/admin/session",
+        headers={"X-Admin-Access-Code": "private-admin"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "admin"
 
 
 def test_admin_chat_rejects_the_wrong_admin_role_code(monkeypatch) -> None:

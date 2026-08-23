@@ -122,7 +122,7 @@ Action: I added a hidden admin route with a separate role code. It records curre
 
 Stakes: Exposing raw prompts or credentials would create a security problem. Showing a fake static diagram would not prove the live route executed.
 
-Evidence: Four new API tests cover disabled configuration, rejected credentials, role verification, trace structure, and secret redaction. The full offline suite now passes 66 tests, with two live provider tests kept opt-in.
+Evidence: API tests cover disabled configuration, rejected credentials, bootstrap and environment-backed role verification, trace structure, and secret redaction. The full offline suite now passes 67 tests, with two live provider tests kept opt-in.
 
 ### 60-second version
 

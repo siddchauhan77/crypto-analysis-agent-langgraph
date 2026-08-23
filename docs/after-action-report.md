@@ -21,8 +21,8 @@ Current claims include a provider and retrieval time. The system separates sourc
 Verified August 13, 2026:
 
 - Ruff lint: passed
-- Test collection: 68
-- Offline tests: 66 passed
+- Test collection: 69
+- Offline tests: 67 passed
 - Opt-in live provider tests: 2 skipped during the offline closeout run
 - Fixed live evaluation after regression upgrade: 40 of 40 runs passed
 - Initial baseline retained as history: 37 of 40 runs passed
@@ -84,7 +84,7 @@ Cost: The product does not serve execution-oriented traders.
 - FreeCryptoAPI's free plan did not provide every planned field. Unsupported market-cap and volume fields were removed instead of inferred.
 - A provider request initially encoded the multi-symbol separator incorrectly. FreeCryptoAPI required a literal `+`, not `%2B`.
 - Vercel does not provide durable SQLite persistence. The browser uses bounded local history instead.
-- The browser initially displayed stale test counts as the suite grew. Closeout now reports 66 passing offline tests.
+- The browser initially displayed stale test counts as the suite grew. Closeout now reports 67 passing offline tests.
 - The project has current-price comparison bars, not historical TradingView-style time-series charts.
 
 ## Known production gaps
