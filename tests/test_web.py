@@ -113,12 +113,14 @@ class FakeAgent:
 
 def test_health_reports_read_only_mode(monkeypatch) -> None:
     monkeypatch.delenv("DEMO_ACCESS_CODE", raising=False)
+    monkeypatch.delenv("ADMIN_ACCESS_CODE", raising=False)
     response = TestClient(web.app).get("/api/health")
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
         "mode": "read-only",
         "access_code_required": False,
+        "admin_trace_configured": False,
     }
     assert response.headers["cache-control"] == "no-store"
 

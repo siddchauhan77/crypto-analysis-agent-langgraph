@@ -434,6 +434,7 @@ def health() -> dict[str, object]:
         "status": "ok",
         "mode": "read-only",
         "access_code_required": bool(os.getenv("DEMO_ACCESS_CODE", "").strip()),
+        "admin_trace_configured": bool(os.getenv("ADMIN_ACCESS_CODE", "").strip()),
     }
 
 
