@@ -16,7 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=VT323&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260823-admin1" />
+    <link rel="stylesheet" href="/styles.css?v=20260823-observe1" />
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -171,6 +171,49 @@
               <div><small>Tools</small><strong id="trace-tools-count">0</strong></div>
             </div>
 
+            <section class="expert-guide" aria-labelledby="expert-guide-title">
+              <div class="expert-guide-heading">
+                <div>
+                  <p class="eyebrow">Expert interpretation</p>
+                  <h3 id="expert-guide-title">Read the system in three planes</h3>
+                </div>
+                <p>Separate observed events from controls and claims the trace cannot support.</p>
+              </div>
+              <div class="plane-grid">
+                <article class="plane-model">
+                  <span>Model plane · probabilistic</span>
+                  <strong>Tool selection</strong>
+                  <p>The model interprets intent and proposes a typed tool call. Inspect the selected tool and arguments.</p>
+                </article>
+                <article class="plane-control">
+                  <span>Control plane · deterministic</span>
+                  <strong>Execution bounds</strong>
+                  <p>Schemas, call limits, duplicate rejection, redaction, and response contracts constrain the run.</p>
+                </article>
+                <article class="plane-evidence">
+                  <span>Evidence plane · external</span>
+                  <strong>Provider payload</strong>
+                  <p>Source and retrieval time show provenance. They do not prove provider accuracy or causation.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="operator-readout" aria-labelledby="operator-readout-title">
+              <div class="readout-heading">
+                <div>
+                  <p class="eyebrow">Latest run</p>
+                  <h3 id="operator-readout-title">Operator readout</h3>
+                </div>
+                <span>Observed ≠ inferred</span>
+              </div>
+              <div class="trace-insights" id="trace-insights">
+                <article class="insight-empty">
+                  <small>Waiting for a run</small>
+                  <strong>Submit a question in Chat to populate routing, evidence, and budget signals.</strong>
+                </article>
+              </div>
+            </section>
+
             <div class="safeguard-strip" id="safeguard-strip"></div>
             <p class="trace-notice" id="trace-notice">
               Run a question in Chat. The authorized trace will appear here.
@@ -237,6 +280,6 @@
       <span>Prices: FreeCryptoAPI · News: NewsAPI</span>
     </footer>
 
-    <script src="/app.js?v=20260823-admin1" defer></script>
+    <script src="/app.js?v=20260823-observe1" defer></script>
   </body>
 </html>

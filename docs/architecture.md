@@ -109,7 +109,13 @@ flowchart LR
     R --> UI
 ```
 
-The console exposes request bounds, selected tool names and arguments, normalized tool output, sources, retrieval times, duration, and the final answer. It excludes model chain-of-thought and system prompts. Trace responses use the same no-store policy as public responses and are not retained server-side.
+The console exposes request bounds, selected tool names and arguments, normalized tool output, sources, retrieval times, duration, and the final answer. Its interpretation layer separates three planes:
+
+- Model plane: probabilistic intent interpretation and tool selection.
+- Control plane: deterministic schemas, tool budget, duplicate rejection, redaction, and response contract.
+- Evidence plane: external provider payload, source, and retrieval time.
+
+The operator readout labels routing, evidence counts, budget use, and trace scope as observed or bounded facts. It does not infer provider truth, causality, or production reliability. The console excludes model chain-of-thought and system prompts. Trace responses use the same no-store policy as public responses and are not retained server-side.
 
 Admin limitations:
 

@@ -267,6 +267,28 @@ def test_admin_chat_returns_redacted_observable_execution_trace(monkeypatch) -> 
         "Secrets redacted",
         "No-store response",
     ]
+    assert payload["insights"] == [
+        {
+            "kind": "observed",
+            "label": "Routing",
+            "value": "1 tool selected: search_crypto_news",
+        },
+        {
+            "kind": "observed",
+            "label": "Evidence",
+            "value": "1 provider and 1 retrieval timestamp returned",
+        },
+        {
+            "kind": "control",
+            "label": "Tool budget",
+            "value": "1 of 6 calls used",
+        },
+        {
+            "kind": "boundary",
+            "label": "Trace scope",
+            "value": "Current request only. No retained production trace.",
+        },
+    ]
     assert [step["stage"] for step in payload["trace"]] == [
         "request",
         "model",

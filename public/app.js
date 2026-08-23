@@ -37,6 +37,7 @@ const traceRequest = document.querySelector("#trace-request");
 const traceDuration = document.querySelector("#trace-duration");
 const traceStepsCount = document.querySelector("#trace-steps-count");
 const traceToolsCount = document.querySelector("#trace-tools-count");
+const traceInsights = document.querySelector("#trace-insights");
 const safeguardStrip = document.querySelector("#safeguard-strip");
 const traceNotice = document.querySelector("#trace-notice");
 const traceStepsNode = document.querySelector("#trace-steps");
@@ -373,6 +374,20 @@ function renderAdminTrace(payload) {
   traceToolsCount.textContent = String((payload.tools_used || []).length);
   traceCount.textContent = String(payload.trace.length);
   traceNotice.textContent = payload.trace_notice || "Redacted observable execution metadata.";
+
+  traceInsights.replaceChildren();
+  (payload.insights || []).forEach((insight) => {
+    const article = document.createElement("article");
+    article.className = `trace-insight insight-${insight.kind}`;
+    const kind = document.createElement("small");
+    kind.textContent = insight.kind;
+    const label = document.createElement("strong");
+    label.textContent = insight.label;
+    const value = document.createElement("p");
+    value.textContent = insight.value;
+    article.append(kind, label, value);
+    traceInsights.append(article);
+  });
 }
 
 function setAdminAuthorized(authorized) {

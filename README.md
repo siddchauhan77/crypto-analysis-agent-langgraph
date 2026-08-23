@@ -187,7 +187,7 @@ The web endpoint also applies input limits, security headers, no-store caching, 
 
 ### Admin execution trace
 
-The hidden admin route shows the current turn as redacted request, model-tool selection, tool output, and final-response events. It does not expose chain-of-thought, system prompts, or credentials.
+The hidden admin route shows the current turn as redacted request, model-tool selection, tool output, and final-response events. An expert interpretation layer separates the probabilistic model plane, deterministic control plane, and external evidence plane. Each run also reports observed routing, provider and timestamp counts, tool-budget use, and trace scope. It does not expose chain-of-thought, system prompts, or credentials.
 
 1. Set a separate `ADMIN_ACCESS_CODE` in the local or Vercel environment.
 2. Open the browser demo with `?admin=1` appended to the URL.

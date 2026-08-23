@@ -49,6 +49,13 @@ The hidden admin console now answers five reviewer questions:
 4. What normalized evidence came back?
 5. What grounded answer did the user receive?
 
+It also gives a knowledgeable reviewer an interpretation frame:
+
+- Probabilistic model decision
+- Deterministic execution controls
+- External evidence and provenance
+- Explicit limits on what the trace establishes
+
 Controls:
 
 - Separate `ADMIN_ACCESS_CODE`

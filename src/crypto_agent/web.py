@@ -15,7 +15,7 @@ from fastapi import FastAPI, Header, HTTPException, Request, Response, status
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel, ConfigDict, Field
 
-from crypto_agent.graph import build_crypto_agent
+from crypto_agent.graph import MAX_TOOL_CALLS_PER_TURN, build_crypto_agent
 
 MAX_HISTORY_MESSAGES = 12
 MAX_MESSAGE_CHARACTERS = 1_200
@@ -91,6 +91,14 @@ class TraceStep(WebModel):
     output: dict[str, object]
 
 
+class TraceInsight(WebModel):
+    """One deterministic interpretation of observable execution metadata."""
+
+    kind: Literal["observed", "control", "boundary"]
+    label: str
+    value: str
+
+
 class AdminChatResponse(ChatResponse):
     """Standard chat result plus an admin-only observable execution trace."""
 
@@ -98,6 +106,7 @@ class AdminChatResponse(ChatResponse):
     duration_ms: int = Field(ge=0)
     trace_notice: str
     safeguards: list[str]
+    insights: list[TraceInsight]
     trace: list[TraceStep]
 
 
@@ -427,6 +436,42 @@ def _execution_trace(
     return steps
 
 
+def _trace_insights(response: ChatResponse) -> list[TraceInsight]:
+    """Explain observed signals without implying provider truth or production reliability."""
+    tool_count = len(response.tools_used)
+    provider_count = len(response.sources)
+    timestamp_count = len(response.retrieved_at)
+    tool_label = ", ".join(response.tools_used) if response.tools_used else "none"
+    tool_word = "tool" if tool_count == 1 else "tools"
+    provider_word = "provider" if provider_count == 1 else "providers"
+    timestamp_word = "timestamp" if timestamp_count == 1 else "timestamps"
+    return [
+        TraceInsight(
+            kind="observed",
+            label="Routing",
+            value=f"{tool_count} {tool_word} selected: {tool_label}",
+        ),
+        TraceInsight(
+            kind="observed",
+            label="Evidence",
+            value=(
+                f"{provider_count} {provider_word} and {timestamp_count} "
+                f"retrieval {timestamp_word} returned"
+            ),
+        ),
+        TraceInsight(
+            kind="control",
+            label="Tool budget",
+            value=f"{tool_count} of {MAX_TOOL_CALLS_PER_TURN} calls used",
+        ),
+        TraceInsight(
+            kind="boundary",
+            label="Trace scope",
+            value="Current request only. No retained production trace.",
+        ),
+    ]
+
+
 @app.get("/api/health")
 def health() -> dict[str, object]:
     """Return non-sensitive deployment status."""
@@ -482,5 +527,6 @@ def admin_chat(
             "Secrets redacted",
             "No-store response",
         ],
+        insights=_trace_insights(response),
         trace=_execution_trace(payload, messages, final, response),
     )
