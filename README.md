@@ -1,20 +1,26 @@
-# Crypto Market Analysis Agent
+# Signal Desk
 
-A read-only LangGraph agent for current cryptocurrency market data, relevant news, comparisons, and threaded follow-up questions.
+A read-only LangGraph agent that checks current cryptocurrency data and recent coverage before answering market-research questions.
 
-The agent does not predict prices, recommend trades, connect to wallets, or execute transactions.
+[Open the live interface](https://crypto-analysis-agent-langgraph.vercel.app/) · [Review the evaluation](docs/evaluation-report.md) · [See the architecture](docs/architecture.md)
 
-## Current status
+![Signal Desk interface showing its evaluation result, connected sources, and market-question workflow](docs/signal-desk-ui.webp)
 
-The technical MVP is complete. The project has secret-safe configuration, typed provider clients, three LangChain tools, a bounded LangGraph model-to-tool loop, durable SQLite thread memory, an interactive CLI, a deployed browser interface, and a repeated live evaluation baseline. The offline suite has 67 passing tests and two opt-in live tests. See [BUILD_PLAN.md](BUILD_PLAN.md) for implemented-versus-planned boundaries.
+Crypto answers go stale quickly. A fluent model response is not enough when a user needs current prices, relevant headlines, and a clear line back to the source. Signal Desk turns each question into a bounded research run: LangGraph selects from three narrow tools, typed clients retrieve live provider data, and the final answer carries sources and retrieval times. Follow-up questions retain limited context without giving the agent access to wallets, exchanges, or transactions.
 
-The project has two interfaces: the durable local terminal chat and the Phase 7 browser demo. The browser uses the same LangGraph agent through FastAPI and keeps its bounded visible history in the browser because Vercel does not provide persistent SQLite storage. See [docs/architecture.md](docs/architecture.md) for both runtime diagrams.
+The same 20-case evaluation ran twice across market data, symbol checks, news, synthesis, threaded follow-ups, and safety. After three response-contract failures were converted into regression coverage, all 40 repeated runs passed. Median response time was 4.835 seconds and estimated OpenAI model cost was $0.022025 for the recorded baseline. The offline suite currently reports 67 passing tests and two opt-in live tests.
 
-## Project story: from API calls to an evaluated agent
+| What is shipped | Evidence |
+| --- | --- |
+| Browser research interface | [Live Vercel deployment](https://crypto-analysis-agent-langgraph.vercel.app/) |
+| Bounded model-to-tool workflow | [Architecture and runtime boundaries](docs/architecture.md) |
+| Repeatable behavior checks | [20 cases, two runs each](docs/evaluation-report.md) |
+| Recorded machine output | [Baseline results](evals/baseline-results.json) |
+| Known limits and next steps | [After-action report](docs/after-action-report.md) |
 
-Most AI demos stop after the model produces a plausible answer. That is where the harder engineering work begins. Crypto information changes quickly, so a useful research assistant should know when it needs current data, retrieve it from an appropriate source, and show the evidence behind its response.
+The result is an evaluated research workflow, not a trading product. It does not predict prices, recommend trades, connect to wallets, or execute transactions.
 
-This project turns that requirement into a controlled LangGraph workflow. A user asks about current prices, coin comparisons, supported symbols, or recent news. The model interprets the request, LangGraph routes the required tool calls, typed clients retrieve data from FreeCryptoAPI or NewsAPI, and the model returns a grounded response with sources and retrieval times. The browser presents the research answer and comparison chart while follow-up questions retain bounded conversation context.
+## How the agent works
 
 ### Why LangGraph
 
