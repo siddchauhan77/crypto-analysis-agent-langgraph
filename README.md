@@ -2,7 +2,7 @@
 
 A read-only LangGraph agent that checks current cryptocurrency data and recent coverage before answering market-research questions.
 
-[Open the live interface](https://crypto-analysis-agent-langgraph.vercel.app/) · [Review the evaluation](docs/evaluation-report.md) · [See the architecture](docs/architecture.md)
+[Open the live interface](https://crypto-analysis-agent-langgraph.vercel.app/) · [Review the evaluation](docs/evaluation-report.md) · [See the architecture](docs/architecture.md) · [Run the composite analyst scenario](docs/customer-simulation.md)
 
 ![Signal Desk interface showing its evaluation result, connected sources, and market-question workflow](docs/signal-desk-ui.webp)
 
@@ -19,6 +19,10 @@ The same 20-case evaluation ran twice across market data, symbol checks, news, s
 | Known limits and next steps | [After-action report](docs/after-action-report.md) |
 
 The result is an evaluated research workflow, not a trading product. It does not predict prices, recommend trades, connect to wallets, or execute transactions.
+
+## Source-grounded analyst scenario
+
+The interface includes a one-click analyst-brief scenario designed from public research-workflow evidence. It is a fictional composite, not a customer, endorsement, user study, or adoption claim. The scenario asks for a short BTC-versus-ETH brief with current figures, recent coverage, source links, retrieval times, and an explicit separation of measured facts from possible explanations. See the [scenario, sources, acceptance criteria, and limits](docs/customer-simulation.md).
 
 ## How the agent works
 
@@ -136,13 +140,13 @@ The configuration command reports whether each service is configured. It never p
 uv run python -c "import langgraph"
 uv run ruff check .
 uv run ruff format --check .
-uv run pytest
+uv run --extra dev python -m pytest
 ```
 
 Run the two live provider checks only when you intend to consume API quota:
 
 ```bash
-RUN_LIVE_API_TESTS=1 uv run pytest -m live
+RUN_LIVE_API_TESTS=1 uv run --extra dev python -m pytest -m live
 ```
 
 Redacted examples of the two live data-provider response shapes are stored in [docs/provider-samples](docs/provider-samples). They contain no article text, current market values, or credentials.
